@@ -1,7 +1,7 @@
 # Filament TypeScript - Engineering Plan
 
-> **Status**: Planning Phase - Milestone 2 Complete
-> **Version**: 1.0.1
+> **Status**: Planning Phase - Milestone 3 Complete
+> **Version**: 1.0.2
 > **Last Updated**: 2025-02-10
 
 ---
@@ -75,7 +75,7 @@ This declarative, chainable API is what developers love. It must be preserved.
 - Which features can be deferred to plugins?
 - What does the server-client JSON protocol look like?
 
-Status: Done in `docs/milestone-1-domain-analysis.md`
+Status: **Complete** - See `docs/milestone-1-domain-analysis.md`
 
 ---
 
@@ -136,6 +136,9 @@ Status: **Complete** - See `docs/milestone-2-technology-stack-research.md`
 - Core type definitions (as documentation, not code)
 - Sequence diagrams for critical flows
 - Architecture Decision Records
+- Final tech-stack decisions
+
+Status: **Complete** - See `docs/milestone-3-architecture-design.md` and `docs/adr/`
 
 ---
 
@@ -479,12 +482,12 @@ These will be answered during their respective milestones:
 | Question | Milestone | Status |
 |----------|-----------|--------|
 | What are all Filament PHP's features? | M1 | ✅ Complete |
-| Which frontend framework? | M3 | Research complete, decision pending |
-| Which monorepo tool? | M3 | Research complete, decision pending |
-| Which backend framework to prioritize? | M3 | Research complete, decision pending |
-| Class-based or functional API? | M3 | Pending |
-| How to share types between server and client? | M3 | Pending |
-| Adapter architecture boundaries? | M3 | Pending |
+| Which frontend framework? | M3 | ✅ Vue 3 selected |
+| Which monorepo tool? | M3 | ✅ pnpm + Turborepo selected |
+| Which backend framework to prioritize? | M3 | ✅ AdonisJS (with adapter pattern) |
+| Class-based or functional API? | M3 | ✅ Class-based fluent API |
+| How to share types between server and client? | M3 | ✅ Shared types package |
+| Adapter architecture boundaries? | M3 | ✅ Server and ORM adapters |
 | Which chart library? | M10 | Pending |
 | Real-time strategy (WebSocket vs SSE)? | M11 | Pending |
 
