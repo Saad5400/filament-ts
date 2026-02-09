@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest"
+    "test": "vitest --run --passWithNoTests",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@filament-ts/forms": "workspace:*",
@@ -28,6 +29,7 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
