@@ -30,9 +30,9 @@
   },
   "dependencies": {
     "@filament-ts/support": "workspace:*",
-    "commander": "^12.1.0",
-    "citty": "^0.1.6",
-    "pathe": "^1.1.2",
+    "commander": "^14.0.3",
+    "citty": "^0.2.0",
+    "pathe": "^2.0.3",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {

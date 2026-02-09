@@ -37,7 +37,7 @@
     "@filament-ts/notifications": "workspace:*",
     "@filament-ts/resources": "workspace:*",
     "@tanstack/vue-query": "^5.62.3",
-    "pinia": "^2.2.8",
+    "pinia": "^3.0.4",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {

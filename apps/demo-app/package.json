@@ -24,7 +24,7 @@
     "@filament-ts/ui": "workspace:*",
     "@headlessui/vue": "^1.7.23",
     "@tanstack/vue-query": "^5.62.3",
-    "pinia": "^2.2.8",
+    "pinia": "^3.0.4",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
