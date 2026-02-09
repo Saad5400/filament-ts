@@ -142,6 +142,14 @@ Status: **Complete** - See `docs/milestone-3-architecture-design.md` and `docs/a
 
 ---
 
+### Milestone Break 1
+
+**Goal**: Review all the current documents and update any missing/deprecated/incorrect information
+
+Status: **Complete** - Fixed M3 status header, corrected code syntax errors (PHP → JS), updated document checklist
+
+---
+
 ### Milestone 4: Development Infrastructure Setup
 
 **Goal**: Set up the tooling and infrastructure that enables efficient development.

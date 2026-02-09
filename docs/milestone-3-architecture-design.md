@@ -1,7 +1,7 @@
 # Milestone 3: Architecture Design
 
-> **Status**: In Progress
-> **Version**: 1.0.0
+> **Status**: Complete
+> **Version**: 1.0.1
 > **Date**: 2025-02-10
 > **Previous**: Milestone 2 (Technology Stack Research)
 > **Next**: Milestone 4 (Development Infrastructure Setup)
@@ -593,24 +593,24 @@ const form = new Form()
     new TextField('name')
       .label('Name')
       .required()
-      ->placeholder('Enter name')
-      ->helperText('Enter the full name'),
+      .placeholder('Enter name')
+      .helperText('Enter the full name'),
 
     new EmailField('email')
       .label('Email')
-      ->unique()
-      ->validation(['email', 'max:255']),
+      .unique()
+      .validation(['email', 'max:255']),
 
     new SelectField('role')
       .label('Role')
-      ->options([
+      .options([
         { label: 'Admin', value: 'admin' },
         { label: 'User', value: 'user' },
       ])
-      ->default('user'),
+      .default('user'),
   ])
-  ->method('POST')
-  ->action('/api/users')
+  .method('POST')
+  .action('/api/users')
 ```
 
 ### 5.2 Base Schema Classes
@@ -1367,4 +1367,4 @@ With architecture design complete, the next milestone is:
 - [x] Renderer Strategy
 - [x] State Management Architecture
 - [x] Sequence Diagrams
-- [ ] Open Questions (to be answered in later milestones)
+- [x] Open Questions (documented for later milestones)
