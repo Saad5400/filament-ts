@@ -1,0 +1,31 @@
+/**
+ * VitePress Custom Styles
+ */
+
+:root {
+  --filament-primary: #3b82f6;
+  --filament-primary-dark: #2563eb;
+}
+
+.doc-footer {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vp-c-bg-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vp-c-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-c-text-2);
+}

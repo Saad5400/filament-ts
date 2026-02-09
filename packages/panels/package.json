@@ -1,0 +1,51 @@
+{
+  "name": "@filament-ts/panels",
+  "version": "0.0.1",
+  "description": "Panel configuration, routing, navigation, and authentication for Filament TypeScript",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./internal": {
+      "types": "./dist/internal.d.ts",
+      "import": "./dist/internal.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@filament-ts/support": "workspace:*",
+    "@filament-ts/schemas": "workspace:*",
+    "@filament-ts/ui": "workspace:*",
+    "@filament-ts/forms": "workspace:*",
+    "@filament-ts/tables": "workspace:*",
+    "@filament-ts/infolists": "workspace:*",
+    "@filament-ts/actions": "workspace:*",
+    "@filament-ts/widgets": "workspace:*",
+    "@filament-ts/notifications": "workspace:*",
+    "@filament-ts/resources": "workspace:*",
+    "@tanstack/vue-query": "^5.62.3",
+    "pinia": "^2.2.8",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vue": "^3.5.13"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}

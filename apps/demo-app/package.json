@@ -1,0 +1,38 @@
+{
+  "name": "@filament-ts/demo-app",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Demo application showcasing Filament TypeScript features",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@filament-ts/forms": "workspace:*",
+    "@filament-ts/infolists": "workspace:*",
+    "@filament-ts/notifications": "workspace:*",
+    "@filament-ts/panels": "workspace:*",
+    "@filament-ts/resources": "workspace:*",
+    "@filament-ts/schemas": "workspace:*",
+    "@filament-ts/tables": "workspace:*",
+    "@filament-ts/ui": "workspace:*",
+    "@headlessui/vue": "^1.7.23",
+    "@tanstack/vue-query": "^5.62.3",
+    "pinia": "^2.2.8",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.3",
+    "vitest": "^2.1.8"
+  }
+}

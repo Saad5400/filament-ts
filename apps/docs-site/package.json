@@ -1,0 +1,21 @@
+{
+  "name": "@filament-ts/docs-site",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Documentation site for Filament TypeScript",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "dependencies": {
+    "@filament-ts/forms": "workspace:*",
+    "@filament-ts/panels": "workspace:*",
+    "@filament-ts/tables": "workspace:*",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.0"
+  }
+}
