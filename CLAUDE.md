@@ -113,4 +113,4 @@ The following directory contains the filament project cloned from GitHub which c
 
 ## Project Status
 
-Greenfield. Currently in planning phase.
+Greenfield. Currently in planning phase. See PROJECT_PLAN.md
