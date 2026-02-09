@@ -75,6 +75,8 @@ This declarative, chainable API is what developers love. It must be preserved.
 - Which features can be deferred to plugins?
 - What does the server-client JSON protocol look like?
 
+Status: Done in `docs/milestone-1-domain-analysis.md`
+
 ---
 
 ### Milestone 2: Technology Stack Research & Selection
