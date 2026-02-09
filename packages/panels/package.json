@@ -38,7 +38,7 @@
     "@filament-ts/resources": "workspace:*",
     "@tanstack/vue-query": "^5.62.3",
     "pinia": "^2.2.8",
-    "vue-router": "^4.5.0"
+    "vue-router": "^5.0.2"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
