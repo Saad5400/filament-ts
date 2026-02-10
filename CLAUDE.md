@@ -27,14 +27,20 @@ Built on: **Livewire** + **Alpine.js** + **Tailwind CSS** (the "TALL" stack)
 - **Custom resource pages** - fully custom pages for a resource
 
 ### Tables
-- **Columns**: text, icon, image, color, select, toggle, text input, checkbox, custom
-- **Filters**: select filters, ternary filters (yes/no/all), query builder (advanced), custom filters, filter layout
+- **Columns**: text (with badge mode), icon (with boolean mode), image, color, select, toggle, text input, checkbox, view (custom Svelte component)
+- **Column groups**: multi-level table headers
+- **Column layouts**: split, stack, grid, panel (responsive row rendering)
+- **Filters**: select filters, multi-select filters, ternary filters (yes/no/all), trashed filter (soft-deletes), query builder (advanced), custom filters, filter layout, filter indicators
 - **Actions**: bulk actions, row actions, header actions, relationship actions (attach/detach/associate/dissociate)
 - **Layout**: column arrangement, reordering, resizing
-- **Summaries**: sum, avg, min, max per column
-- **Grouping rows**: group by column values
+- **Summaries**: sum, avg, min, max, count, range per column
+- **Grouping rows**: group by column values with collapsible groups
 - **Empty state**: custom empty state UI
 - **Custom data**: use any data source (not just database)
+- **Column manager**: toggle column visibility UI
+- **Deferred loading**: async data load with skeleton placeholder
+- **Striped rows**: alternating row background colors
+- **Pagination modes**: standard, simple, cursor
 
 ### Forms (27 Field Types)
 Text input, select, checkbox, toggle, checkbox list, radio, date-time picker, date picker, time picker, file upload, rich editor (WYSIWYG), markdown editor, repeater (repeatable fields), builder (dynamic block templates), tags input, textarea, key-value editor, color picker, toggle buttons, slider, code editor, hidden fields, morph-to select, placeholder, one-time code input, view field, table select, custom fields. Plus **integrated validation** and **multi-step wizards**.
@@ -50,9 +56,9 @@ Text entry, icon entry, image entry, color entry, code entry, key-value entry, r
 - **Custom actions** - build your own with forms, logic, authorization
 
 ### Notifications
-- **Flash notifications** - toast messages that appear immediately
+- **Flash notifications** - toast messages that appear immediately, with inline display mode
 - **Database notifications** - persistent notifications stored in DB, shown in notification center
-- **Broadcast notifications** - real-time notifications via websockets
+- **Broadcast notifications** - real-time notifications via SSE (`@adonisjs/transmit`)
 
 ### Widgets
 - **Stats overview widgets** - display metrics with trend indicators
@@ -64,8 +70,12 @@ Text entry, icon entry, image entry, color entry, code entry, key-value entry, r
 - **Custom branding** - logo, title, colors, favicon
 - **Authentication** - login, logout, password reset
 - **Middleware** - custom middleware for routes
-- **Theme system** - light/dark mode
+- **Theme system** - light/dark mode with system preference
 - **Routing** - custom route configuration
+- **SPA mode** - client-side navigation between panel pages
+- **Error notifications** - user-friendly toast notifications instead of error pages in production
+- **Unsaved changes alerts** - warn before navigating away from dirty forms
+- **Database transactions** - configurable transaction wrapping for CRUD operations
 
 ### Navigation
 - **Custom pages** - standalone pages outside of resources
@@ -81,12 +91,21 @@ Text entry, icon entry, image entry, color entry, code entry, key-value entry, r
 - **Colors** - customize color scheme
 - **Icons** - use any icon library (Blade Icons)
 
+### Schemas (Core Engine)
+- **Layout components**: Group, Grid, Flex, Fieldset, Section, Tabs, Wizard, Callout, EmptyState, FusedGroup
+- **Prime/utility components**: Text, Icon, Image, UnorderedList, Html, View, RenderHook, Actions, EmbeddedSchema, EmbeddedTable
+- **StateCast system** - transform state between UI and storage representations
+- **Extra attributes** - escape hatch for arbitrary HTML attributes on any component
+- **configureUsing** - set default configuration for all instances of a component type
+- **URL opening** - make any component clickable to navigate
+- **Clipboard copying** - click to copy component value
+
 ### Advanced Features
 - **Render hooks** - inject custom content at specific points in components
 - **Registering assets** - add custom CSS/JS
-- **Enum tricks** - use PHP enums for selects, toggles, etc.
-- **File generation** - artisan commands to generate resources, pages, etc.
-- **Modular architecture (DDD)** - support for domain-driven design structure
+- **Enum tricks** - use enums for selects, toggles, etc.
+- **File generation** - Ace commands to generate resources, pages, etc.
+- **Modular architecture** - 10-package monorepo with clean dependency tree
 
 ### Testing
 - **Testing resources** - test CRUD operations
@@ -117,17 +136,20 @@ The following directory contains the filament project cloned from GitHub which c
 
 ### Completed
 - [x] Requirements Gathering — stakeholder questions answered
-- [x] Software Requirements Specification (SRS) — see `SRS.md` (v1.2)
+- [x] Software Requirements Specification (SRS) — see `SRS.md` (v1.3)
 - [x] Technology Stack Decisions — see `ADD.md`
-- [x] Architecture Design Document (ADD) — see `ADD.md` (v1.1, ADR-001 through ADR-018)
-- [x] Milestones & Task Breakdown — see `MILESTONES.md` (v1.1, 22 milestones)
+- [x] Architecture Design Document (ADD) — see `ADD.md` (v1.2, ADR-001 through ADR-019)
+- [x] Milestones & Task Breakdown — see `MILESTONES.md` (v1.2, 22 milestones)
 - [x] Critical architecture gaps resolved:
   - Reactive/live field updates via AJAX/Axios (ADR-011)
   - Table state in URL query parameters (ADR-012)
   - Asset distribution & unified design system (ADR-013)
   - Database migration strategy (ADR-014)
-  - Schema serialization strategy (ADR-015)
+  - Schema serialization strategy with paginated data (ADR-015)
+  - Static configuration defaults via configureUsing (ADR-019)
   - Events system, flow control, rate limiting
+  - StateCast system for state transformation
+  - Drag-and-drop library (SortableJS), date picker (Bits UI), markdown rendering (marked)
 
 ### Next Steps
 - [ ] **Implementation Phase** — Build packages bottom-up (see `MILESTONES.md` for detailed task breakdown)
@@ -166,6 +188,9 @@ The following directory contains the filament project cloned from GitHub which c
 - **Code editor:** CodeMirror 6
 - **Charts:** Chart.js
 - **Icons:** Lucide Svelte (default, pluggable)
+- **Drag-and-drop:** SortableJS (for Repeater/Builder reordering, table row reordering)
+- **Date/time picker:** Custom (Bits UI Popover + Calendar primitives)
+- **Markdown rendering:** marked (for MarkdownEditor preview)
 
 ### Key Decisions Made
 - **Vision:** Spiritual successor to Laravel Filament for the JS/TS ecosystem (not a 1:1 port)
@@ -184,6 +209,7 @@ The following directory contains the filament project cloned from GitHub which c
 - **Serialization:** Server evaluates all closures; client receives static JSON + declarative visibility rules (ADR-015)
 - **No Macroable pattern:** Use TypeScript mixins and class extension instead (ADR-016)
 - **Events:** AdonisJS event emitter for domain events (ADR-018)
+- **configureUsing:** Static default configuration for all component instances (ADR-019)
 - **Version-locked packages:** All `@driven/*` packages share the same version number
 
 ### Developer Quick Start
@@ -207,6 +233,6 @@ Starter kit: https://github.com/adonisjs/inertia-starter-kit
 
 ### Project Documents
 - `CLAUDE.md` — Project context and status (this file)
-- `SRS.md` — Software Requirements Specification (v1.2 — 27 field types, 10 packages, events, flow control, file upload architecture)
-- `ADD.md` — Architecture Design Document (v1.1 — 18 ADRs covering all critical architecture decisions)
-- `MILESTONES.md` — Project milestones and progress tracker (v1.1 — 22 milestones, 0–21)
+- `SRS.md` — Software Requirements Specification (v1.3 — 27 field types, 10 packages, StateCast system, extra attributes, column groups/layouts, advanced RichEditor, events, flow control, file upload architecture)
+- `ADD.md` — Architecture Design Document (v1.2 — 19 ADRs covering all critical architecture decisions, including configureUsing pattern, drag-and-drop, date picker, markdown rendering, paginated data serialization)
+- `MILESTONES.md` — Project milestones and progress tracker (v1.2 — 22 milestones, 0–21, with corrected dependency graph)

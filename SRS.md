@@ -2,7 +2,7 @@
 
 ## Driven: Server-Driven UI Framework for TypeScript
 
-**Document Version:** 1.2
+**Document Version:** 1.3
 **Date:** 2026-02-10
 **Status:** Approved — Design Phase Active
 
@@ -148,20 +148,47 @@ TextInput.make('name')
 **FR-SCH-005:** Components SHALL support dynamic configuration via callbacks/closures that receive contextual data (current record, form state, authenticated user, etc.).
 
 **FR-SCH-006:** Layout components SHALL include at minimum:
+- Group (invisible wrapper — used for conditional visibility, relationship binding, and logical grouping of child components)
 - Grid (responsive column grid)
 - Flex (flexbox layout)
 - Fieldset (grouped fields with border)
 - Section (collapsible card with heading)
-- Tabs (tabbed interface)
-- Wizard (multi-step form)
+- Tabs (tabbed interface with persistent tab selection)
+- Wizard (multi-step form with step indicators)
 - Callout (highlighted information box)
 - Empty State (placeholder for no-data scenarios)
+- FusedGroup (visually fused group of fields — fields that appear joined together, e.g., affixed inputs)
 
-**FR-SCH-007:** Prime components SHALL include at minimum:
-- Text (static text)
+**FR-SCH-007:** Prime/utility components SHALL include at minimum:
+- Text (static text with formatting)
 - Icon (icon display)
 - Image (image display)
 - Unordered List
+- Html (raw HTML/content injection)
+- View (render an arbitrary custom Svelte component inline within a schema)
+- RenderHook (named injection point — renders registered content at a named location)
+- Actions (inline action button group — renders a set of action buttons within a schema)
+- EmbeddedSchema (embed a named sub-schema inline)
+- EmbeddedTable (embed a table inline within a schema)
+
+**FR-SCH-008:** The schema engine SHALL provide a **StateCast** system for transforming component state between the UI representation and the database/storage representation. StateCasts SHALL include at minimum:
+- BooleanStateCast (cast to/from boolean)
+- NumberStateCast (cast to/from number)
+- DateTimeStateCast (cast to/from Date objects)
+- EnumStateCast / EnumArrayStateCast (cast to/from TypeScript enums)
+- FileUploadStateCast (cast file upload state)
+- KeyValueStateCast (cast key-value pair data)
+- OptionStateCast / OptionsArrayStateCast (cast select option values)
+- SliderStateCast (cast slider range values)
+- Custom StateCast (developers SHALL be able to create custom state casts implementing a `get()`/`set()` interface)
+
+**FR-SCH-009:** All components SHALL support **extra attributes** — the ability to add arbitrary HTML attributes (classes, data attributes, ARIA attributes, etc.) to the component's root element and key sub-elements via `extraAttributes()` and similar methods. This is the primary escape hatch for customization beyond the built-in API.
+
+**FR-SCH-010:** Components SHALL support **URL opening** — the ability to make a component clickable and navigate to a URL or open it in a new tab, via `url()` and `openUrlInNewTab()` methods.
+
+**FR-SCH-011:** Components SHALL support **clipboard copying** — the ability to click a component to copy its value to the clipboard, via `copyable()`, `copyMessage()`, and `copyMessageDuration()` methods.
+
+**FR-SCH-012:** Components SHALL support **metadata** — the ability to attach arbitrary key-value metadata to any component via `meta()` method, accessible in rendering and event contexts.
 
 ---
 
@@ -216,6 +243,29 @@ TextInput.make('name')
 
 **FR-FRM-008:** Multi-step wizard forms SHALL be supported via Wizard layout component.
 
+**FR-FRM-009:** Fields SHALL support the following common field concerns:
+- Autofocus (`autofocus()`)
+- Autocomplete (`autocomplete()`)
+- Read-only mode (`readOnly()`)
+- Disabled state (`disabled()`)
+- Inline label positioning (`inlineLabel()`)
+- Affixes — prefix/suffix text, icons, and actions (`prefix()`, `suffix()`, `prefixAction()`, `suffixAction()`)
+- Input mode for mobile keyboards (`inputMode()`)
+- Extra HTML attributes on the input element and field wrapper (`extraInputAttributes()`, `extraFieldWrapperAttributes()`)
+- Datalist options for native autocomplete suggestions (`datalist()`)
+
+**FR-FRM-010:** The RichEditor field SHALL support advanced features beyond basic WYSIWYG editing:
+- Configurable toolbar buttons
+- File attachments within the editor (via a pluggable file attachment provider interface)
+- @mention support (via a pluggable mention provider interface)
+- Custom content blocks (developer-definable block types with custom rendering)
+- Text color selection
+- Grid layouts within the editor
+- Custom TipTap extensions (via a plugin interface)
+- Server-side rich content rendering (converting editor JSON to HTML for display outside the editor)
+
+**FR-FRM-011:** The Repeater field SHALL support a `relationship()` mode for managing HasMany/MorphMany relationships directly, with automatic record creation, updating, and deletion. This includes a specialized RelationshipRepeater variant.
+
 ---
 
 ### 3.4 Tables
@@ -224,24 +274,28 @@ TextInput.make('name')
 
 | # | Column | Description |
 |---|--------|-------------|
-| 1 | TextColumn | Display text, with formatting options |
-| 2 | IconColumn | Display icons, including boolean icons |
-| 3 | ImageColumn | Display images/thumbnails |
+| 1 | TextColumn | Display text, with formatting options. Supports `badge()` mode for badge-style display. |
+| 2 | IconColumn | Display icons, including `boolean()` mode for true/false icons |
+| 3 | ImageColumn | Display images/thumbnails with configurable size |
 | 4 | ColorColumn | Display color swatches |
-| 5 | SelectColumn | Inline select editing |
-| 6 | ToggleColumn | Inline toggle editing |
-| 7 | TextInputColumn | Inline text editing |
-| 8 | CheckboxColumn | Inline checkbox editing |
+| 5 | SelectColumn | Inline select editing (editable column) |
+| 6 | ToggleColumn | Inline toggle editing (editable column) |
+| 7 | TextInputColumn | Inline text editing (editable column) |
+| 8 | CheckboxColumn | Inline checkbox editing (editable column) |
+| 9 | ViewColumn | Render a custom Svelte component per cell |
 
-**FR-TBL-002:** Columns SHALL support: sorting, searching (individual & global), toggling visibility, responsive breakpoints, tooltips, formatting, and custom rendering.
+**FR-TBL-002:** Columns SHALL support: sorting, searching (individual & global), toggling visibility, responsive breakpoints (hide at breakpoints), tooltips, formatting (date, number, currency, etc.), line clamping (text truncation), descriptions (sub-text below value), clipboard copying, URL opening, and custom rendering.
 
 **FR-TBL-003:** Tables SHALL support filters:
 - Base filter (custom query + form UI)
 - Select filter (filter by a select dropdown)
+- Multi-select filter (filter by multiple values)
 - Ternary filter (yes/no/all)
+- Trashed filter (prebuilt filter for soft-deleted records: with/without/only trashed)
 - Query builder integration (advanced multi-condition filter, provided by `@driven/query-builder` — see §3.16)
 - Custom filters
 - Configurable filter layout (dropdown, sidebar, above table)
+- Filter indicators (visual badges showing active filters with remove button)
 
 **FR-TBL-004:** Tables SHALL support actions:
 - **Record actions** (per-row actions like edit, delete, view)
@@ -249,21 +303,34 @@ TextInput.make('name')
 - **Toolbar/Bulk actions** (actions on selected records, like bulk delete)
 
 **FR-TBL-005:** Tables SHALL support:
-- Pagination (with configurable page sizes)
+- Pagination (with configurable page sizes and pagination modes: standard, simple, cursor)
 - Row click behavior (link to URL, open modal, etc.)
 - Record URL generation
 - Row reordering (drag-and-drop)
-- Column summaries (sum, average, count, min, max, custom)
-- Row grouping (group by column value)
+- Column summaries (sum, average, count, min, max, range, values, custom)
+- Row grouping (group by column value with collapsible groups)
 - Empty state customization
 - Custom data sources (not limited to database/ORM)
 - Tabs for pre-filtered views above the table
+- Striped rows (alternating row background colors)
+- Deferred loading (load table data asynchronously after initial page render, showing a loading skeleton)
 
 **FR-TBL-006:** Columns SHALL support displaying data from relationships using dot notation (e.g., `author.name`).
 
 **FR-TBL-007:** Developers SHALL be able to create custom column types.
 
 **FR-TBL-008:** Table state (current page, sort column, sort direction, active filters, search query) SHALL be persisted in URL query parameters to enable shareable/bookmarkable table views and proper browser back/forward navigation. See ADD ADR-012.
+
+**FR-TBL-009:** Tables SHALL support **column groups** (ColumnGroup) — grouping multiple columns under a shared header to create multi-level table headers.
+
+**FR-TBL-010:** Tables SHALL support **column layouts** for alternative row rendering:
+- Split (horizontal split of columns within a row, with responsive breakpoint)
+- Stack (vertically stacked columns within a cell)
+- Grid (grid arrangement of columns within a row)
+- Panel (collapsible detail panel below the row)
+These enable responsive table designs where row content adapts to screen size.
+
+**FR-TBL-011:** Tables SHALL support a **column manager** — a UI control (gear/cog icon) that opens a dropdown where users can toggle column visibility. The column manager SHALL support a reset action to restore default column visibility.
 
 ---
 
@@ -284,6 +351,8 @@ TextInput.make('name')
 **FR-INF-002:** Entries SHALL share the same layout system as forms (Grid, Section, Tabs, etc.).
 
 **FR-INF-003:** Developers SHALL be able to create custom entry types.
+
+**FR-INF-004:** Entries SHALL support: clipboard copying (`copyable()`), URL opening (`url()`), tooltips, placeholder text for empty values, and extra HTML attributes.
 
 ---
 
@@ -353,6 +422,8 @@ TextInput.make('name')
 - Support title, body, icon, color, and status (success, warning, danger, info)
 - Support action buttons within the notification
 - Support configurable duration and dismissibility
+- Support inline display mode (embedded within page content, not just as toasts)
+- Support timestamp display (`date()`)
 - Be triggerable from both server-side code and client-side JavaScript
 
 **FR-NOT-002:** Database notifications SHALL:
@@ -360,6 +431,7 @@ TextInput.make('name')
 - Be rendered in a slide-over notification center accessible from the UI
 - Support mark-as-read functionality
 - Support the same display options as flash notifications
+- Support configurable position (side panel vs. modal)
 
 **FR-NOT-003:** Broadcast notifications SHALL:
 - Be delivered in real-time via Server-Sent Events (`@adonisjs/transmit`)
@@ -504,6 +576,8 @@ TextInput.make('name')
 **FR-PNL-CFG-004:** Custom assets (CSS, JS) SHALL be registrable per-panel.
 
 **FR-PNL-CFG-005:** Lifecycle hooks SHALL be supported at the panel level (e.g., boot).
+
+**FR-PNL-CFG-006:** The panel SHALL support an **error notification system** — when the application is in production mode, full-screen error pages SHALL be replaced with user-friendly toast notifications. Error notifications SHALL be customizable per HTTP status code (e.g., 404, 500) with custom title and body text. This behavior SHALL be configurable per-panel and per-page.
 
 #### 3.9.7 Custom Pages
 
@@ -845,6 +919,10 @@ These patterns from Filament are critical to preserve in the TypeScript rewrite:
 5. **hiddenOn/visibleOn** — Components can be contextually shown/hidden based on the current operation (create, edit, view) or other conditions.
 6. **Operation Context** — The system tracks the current operation (create, edit, view) and makes it available to all components for conditional behavior.
 7. **Utility Injection** — Callbacks can declare what context they need via parameter types, and the framework injects the appropriate values.
+8. **Extra Attributes Escape Hatch** — Any component can have arbitrary HTML attributes added via `extraAttributes()`. This is the primary customization mechanism when the built-in API doesn't cover a specific need. The TypeScript equivalent should use Svelte's spread props or explicit attribute forwarding.
+9. **Static Configuration (`configureUsing`)** — Every component class has a `configureUsing()` static method that sets default configuration for all instances of that component. This allows project-wide defaults (e.g., all TextInputs get the same max length) without subclassing.
+10. **StateCast Pattern** — State is transformed between UI representation and database representation via StateCast objects with `get()`/`set()` methods. This decouples field rendering from storage format.
+11. **Group as Invisible Container** — The `Group` layout component is the most used layout component in Filament. It is invisible (no visual wrapper) and serves as a logical container for conditional visibility, relationship binding, and component grouping.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Driven: Technology Stack & Design Decisions
 
-**Document Version:** 1.1
+**Document Version:** 1.2
 **Date:** 2026-02-10
 **SDLC Phase:** Design
 **Prerequisite:** `SRS.md` (Software Requirements Specification)
@@ -58,6 +58,9 @@ Driven is an **AdonisJS package** — not a standalone framework. Users install 
 | **Data table logic** | Custom (no TanStack dependency) | We build our own table engine — Filament's table is custom, ours should be too |
 | **HTTP client** | Axios | Used for reactive field AJAX endpoints alongside Inertia; consistent API for all non-Inertia HTTP calls |
 | **Class merging** | tailwind-merge + clsx (via `cn()` utility) | Merge Tailwind CSS classes without conflicts — same pattern as shadcn-svelte |
+| **Drag-and-drop** | SortableJS (via `sortablejs` npm package) | Used for Repeater/Builder reordering, table row reordering. Mature, framework-agnostic, touch-friendly. Svelte integration via action/wrapper. |
+| **Markdown rendering** | marked (or markdown-it) | Used for MarkdownEditor preview. Fast, extensible, well-maintained. |
+| **Date/time picker** | Custom (Bits UI Popover + Calendar primitive) | Svelte 5 native calendar picker built on Bits UI's calendar/range-calendar primitives, same approach as shadcn-svelte date-picker |
 
 ### 2.3 Development Tooling
 
@@ -382,6 +385,14 @@ TextInput.make('name')                      Receives JSON:
 
 3. **Model data exposure** — Only explicitly serialized model attributes are sent to the client. Lucid model `$hidden` and `$visible` arrays are respected. Resources can define a `transformRecord()` method to control what data reaches the client.
 
+4. **Paginated table data** — Table serialization includes both the table configuration (columns, filters, actions — serialized once on initial load) and the paginated record data (serialized on every page/filter/sort change). The configuration is static per table; the record data is dynamic. For efficiency:
+   - Column definitions are serialized once and reused across page changes.
+   - Each record row is serialized with only the columns' resolved values (not the full model).
+   - Relationship data used by columns (e.g., `author.name`) is eagerly loaded server-side before serialization.
+   - Summary calculations (sum, avg, etc.) are computed server-side as SQL aggregates, not in JavaScript.
+
+5. **StateCasts** — State transformation between UI representation and storage representation is handled by the StateCast system (SRS FR-SCH-008). StateCasts are applied server-side during form filling (storage → UI) and form saving (UI → storage). The client receives already-transformed values.
+
 **Consequence:** The client is a "dumb" renderer for most cases, with local evaluation only for simple declarative rules. All business logic stays server-side.
 
 ---
@@ -442,6 +453,39 @@ emitter.on('driven:record.created', (event) => {
   // event.resource, event.record, event.user
 })
 ```
+
+---
+
+### ADR-019: Static Configuration Defaults (`configureUsing`)
+
+**Decision:** Every component class SHALL support a static `configureUsing()` method that sets default configuration for all future instances of that component type.
+
+**Rationale:**
+- This is one of Filament's most powerful patterns — it allows project-wide defaults without subclassing (e.g., "all TextInput fields should have `maxLength(255)` by default").
+- TypeScript equivalent uses a static callback stored on the class:
+
+```typescript
+class TextInput extends Field {
+  private static defaultConfigurator?: (input: TextInput) => void
+
+  static configureUsing(callback: (input: TextInput) => void): void {
+    TextInput.defaultConfigurator = callback
+  }
+
+  static make(name: string): TextInput {
+    const instance = new TextInput(name)
+    TextInput.defaultConfigurator?.(instance)
+    return instance
+  }
+}
+
+// In a service provider or boot file:
+TextInput.configureUsing((input) => {
+  input.maxLength(255)
+})
+```
+
+**Consequence:** Allows customization at scale — change defaults for an entire component type in one place. This is critical for large applications with consistent conventions.
 
 ---
 
@@ -639,8 +683,10 @@ The following design concerns will be resolved during implementation:
 | **Plugin registration API** | How third-party plugins hook into the panel — deferred per SRS (not day-one) |
 | **Multi-tenancy scoping strategy** | Single-database (column-based) vs multi-database. Default: single-database with automatic query scoping via Lucid global scopes — resolved during `@driven/panels` implementation |
 | **Multi-tenancy billing integration** | Provider interface for Stripe/Paddle/etc. — resolved during `@driven/panels` advanced features |
-| **Markdown editor library** | Specific library for MarkdownEditor field — resolved during `@driven/forms` implementation |
 | **Component caching** | `node ace driven:cache` / `driven:clear-cache` for production optimization (caches discovered resources/pages/widgets to avoid filesystem scanning) — resolved during `@driven/panels` implementation |
+| **RawJs equivalent** | Filament uses `RawJs` to pass JavaScript expressions from PHP to the client (e.g., custom format functions for text inputs). Driven needs a strategy — options: (a) encode JS strings in JSON with a marker, (b) use named formatters registered client-side, (c) leverage Svelte's native reactivity. Resolved during `@driven/schemas` implementation |
+| **Deferred loading skeleton design** | Table deferred loading shows a skeleton placeholder while data loads asynchronously. The exact skeleton component design will be resolved during `@driven/tables` implementation |
+| **Column manager persistence** | Whether user column visibility preferences should be persisted (localStorage, URL params, or server-side per-user). Resolved during `@driven/tables` implementation |
 
 ---
 

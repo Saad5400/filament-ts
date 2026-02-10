@@ -2,10 +2,10 @@
 
 ## Driven: Server-Driven UI Framework for TypeScript
 
-**Document Version:** 1.1
+**Document Version:** 1.2
 **Date:** 2026-02-10
 **Approach:** Iterative Design-Implement (bottom-up, package by package). No partial public release — the goal is full feature parity before v1.0.
-**Prerequisites:** `SRS.md`, `ADD.md`
+**Prerequisites:** `SRS.md` (v1.3), `ADD.md` (v1.2)
 
 ---
 
@@ -83,7 +83,16 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
   - `HasDescription`, `HasHint`
   - `HasBadge`, `HasTooltip`
   - `HasAlignment`, `HasWeight`, `HasWidth`
-  - `Configurable` (static configuration)
+  - `HasExtraAttributes` (extra HTML attributes escape hatch — SRS FR-SCH-009)
+  - `CanOpenUrl` (URL opening — SRS FR-SCH-010)
+  - `CanBeCopied` (clipboard copying — SRS FR-SCH-011)
+  - `HasMeta` (arbitrary metadata — SRS FR-SCH-012)
+  - `CanBeCollapsed` (collapsible component state)
+  - `CanSpanColumns` (grid column spanning)
+  - `HasChildComponents` (manages child schema components)
+  - `HasState` (component state management)
+  - `HasActions` (component-level actions)
+  - `Configurable` (static `configureUsing()` defaults — ADD ADR-019)
   - `EvaluatesClosures` (Resolvable<T> evaluation)
 - **Resolvable<T> type and resolve() function** — the closure/callback evaluation system (ADD §5.3)
 - **ResolveContext interface** — record, state, user, operation
@@ -112,16 +121,19 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 **Tasks:**
 - **Schema class** — container for an ordered array of components, with `components()` method
 - **Component base class** — extends support's Component, adds schema-specific behavior (child schemas, nesting)
-- **Layout components** — Grid, Flex, Fieldset, Section, Tabs, Wizard, Callout, EmptyState
-- **Prime components** — Text, Icon, Image, UnorderedList
-- **Schema serialization** — `toJSON()` / `serialize()` method that converts the schema tree to a plain JSON object suitable for Inertia props. All `Resolvable<T>` closures evaluated server-side before serialization (ADD ADR-015). Simple visibility rules serialized as declarative JSON rule objects for client-side evaluation.
+- **Layout components** — Group, Grid, Flex, Fieldset, Section, Tabs, Wizard, Callout, EmptyState, FusedGroup (SRS FR-SCH-006)
+- **Prime/utility components** — Text, Icon, Image, UnorderedList, Html, View, RenderHook, Actions, EmbeddedSchema, EmbeddedTable (SRS FR-SCH-007)
+- **StateCast system** — StateCast interface with `get()`/`set()` methods, built-in casts: BooleanStateCast, NumberStateCast, DateTimeStateCast, EnumStateCast, EnumArrayStateCast, FileUploadStateCast, KeyValueStateCast, OptionStateCast, OptionsArrayStateCast, SliderStateCast (SRS FR-SCH-008)
+- **Schema serialization** — `toJSON()` / `serialize()` method that converts the schema tree to a plain JSON object suitable for Inertia props. All `Resolvable<T>` closures evaluated server-side before serialization (ADD ADR-015). Simple visibility rules serialized as declarative JSON rule objects for client-side evaluation. StateCasts applied during serialization (UI → storage and storage → UI transforms).
 - **Component registry** — a mapping from component type strings to their classes (needed for the client to know which Svelte component to render)
-- **Tests** — schema creation, nesting, serialization, layout components, visibility rule serialization
+- **Tests** — schema creation, nesting, serialization, layout components, prime components, StateCasts, visibility rule serialization
 
 **Expected Output:**
 - Schemas can be defined using fluent API: `Schema.make([Section.make('Details').schema([...])])`
 - Schemas serialize to JSON that can be passed as Inertia page props
 - Layout components support the documented options (collapsible, columns, etc.)
+- Group serves as invisible logical container for conditional visibility and relationship binding
+- StateCasts correctly transform state in both directions
 - All tests passing
 
 **Reference:** Study `/home/saad/filament/packages/schemas/src`
@@ -135,8 +147,8 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 **Tasks:**
 - **SchemaRenderer.svelte** — the core component that receives serialized schema JSON and recursively renders the component tree
 - **ComponentResolver** — maps component type strings (from JSON) to Svelte components
-- **Layout component Svelte implementations** — Grid, Flex, Fieldset, Section, Tabs, Wizard, Callout, EmptyState (using Bits UI primitives where applicable)
-- **Prime component Svelte implementations** — Text, Icon, Image, UnorderedList
+- **Layout component Svelte implementations** — Group, Grid, Flex, Fieldset, Section, Tabs, Wizard, Callout, EmptyState, FusedGroup (using Bits UI primitives where applicable)
+- **Prime/utility component Svelte implementations** — Text, Icon, Image, UnorderedList, Html, View (custom Svelte component slot), RenderHook, Actions, EmbeddedSchema, EmbeddedTable
 - **Design system foundation:**
   - CSS custom properties (`--dr-*`) for all semantic colors (6 color scales × 19 shades), typography, spacing, radius, shadows
   - `.dr-*` BEM-style class naming convention on all components
@@ -164,16 +176,17 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 **Goal:** Build all form field types, validation integration, and form state management on the server side.
 
 **Tasks:**
-- **Field base class** — extends schema Component, adds validation, state binding, reactive features
+- **Field base class** — extends schema Component, adds validation, state binding, reactive features, field concerns (autofocus, autocomplete, readOnly, disabled, inlineLabel, affixes, inputMode, datalist, extra attributes — SRS FR-FRM-009)
 - **All 27 field types** — TextInput, Textarea, Select, Checkbox, Toggle, CheckboxList, Radio, DateTimePicker, DatePicker, TimePicker, FileUpload, RichEditor, MarkdownEditor, Repeater, Builder, TagsInput, KeyValue, ColorPicker, ToggleButtons, Slider, CodeEditor, Hidden, MorphToSelect, Placeholder, OneTimeCodeInput, ViewField, TableSelect
+- **RichEditor advanced features** — configurable toolbar, file attachment provider interface, mention provider interface, custom content blocks, text color, grid layouts, custom TipTap extension interface, server-side rich content rendering (SRS FR-FRM-010)
 - **VineJS validation integration** — fields generate VineJS validation rules from their fluent config (e.g., `.required().maxLength(255)` → VineJS schema)
 - **Form state management** — define how form data flows: Inertia `useForm()` on client → submit → VineJS validation on server → errors back via Inertia
 - **Reactive state endpoint** — implement the `POST /driven/state-update` AJAX endpoint (ADD ADR-011) for `live()`, `lazy()`, `debounce()` field updates. `afterStateUpdated()` callback evaluation.
-- **Relationship bindings** — `relationship()` method on fields/layouts for BelongsTo, HasOne, HasMany, MorphOne, MorphMany, BelongsToMany, MorphToMany
+- **Relationship bindings** — `relationship()` method on fields/layouts for BelongsTo, HasOne, HasMany, MorphOne, MorphMany, BelongsToMany, MorphToMany. RelationshipRepeater variant for HasMany/MorphMany (SRS FR-FRM-011).
 - **Dynamic visibility** — `visible()`, `hidden()`, `visibleOn()`, `hiddenOn()` with operation context. Simple rules serialized as declarative JSON; complex rules evaluated server-side via ADR-011.
 - **File upload support** — dedicated upload endpoint for temporary files, integration with `@adonisjs/drive`, server-side type/size validation (SRS §3.19)
 - **Serialization** — form schemas serialize to JSON including field types, rules, options, defaults
-- **Tests** — every field type, validation rule generation, relationship bindings, reactive endpoint, serialization
+- **Tests** — every field type, validation rule generation, relationship bindings, reactive endpoint, RichEditor features, serialization
 
 **Expected Output:**
 - All 27 field types constructable via `FieldType.make('name').options(...)`
@@ -199,8 +212,8 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - **File upload UI** — drag-and-drop, preview (via File API), progress, temporary upload to dedicated endpoint
 - **Rich text editor** — Tiptap integration as RichEditor field
 - **Code editor** — CodeMirror 6 integration as CodeEditor field
-- **Repeater UI** — add/remove/reorder items with drag-and-drop
-- **Builder UI** — block picker, add/remove/reorder blocks
+- **Repeater UI** — add/remove/reorder items with drag-and-drop (SortableJS — ADD §2.2). RelationshipRepeater variant for managing HasMany/MorphMany records directly.
+- **Builder UI** — block picker, add/remove/reorder blocks with drag-and-drop (SortableJS)
 - **Wizard UI** — multi-step form with step indicators and navigation
 - **Select search/create** — searchable dropdown with "create new" option
 - **TableSelect UI** — modal with searchable table for record selection
@@ -225,14 +238,16 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 **Tasks:**
 - **Entry base class** — extends schema Component for read-only display
 - **All 7 entry types** — TextEntry, IconEntry, ImageEntry, ColorEntry, CodeEntry, KeyValueEntry, RepeatableEntry
-- **Shared layout system** — infolists use the same layout components as forms (Grid, Section, Tabs, etc.)
+- **Entry features** — clipboard copying (`copyable()`), URL opening (`url()`), tooltips, placeholder text for empty values, extra HTML attributes (SRS FR-INF-004)
+- **Shared layout system** — infolists use the same layout components as forms (Group, Grid, Section, Tabs, etc.)
 - **Serialization** — infolist schemas serialize to JSON
 - **Svelte entry components** — render each entry type
-- **Tests** — entry rendering, data display, layout sharing
+- **Tests** — entry rendering, data display, entry features (copyable, url), layout sharing
 
 **Expected Output:**
 - Infolists definable with fluent API, sharing layout system with forms
 - All 7 entry types render data correctly
+- Clipboard copying and URL opening work on entries
 - All tests passing
 
 **Reference:** Study `/home/saad/filament/packages/infolists/src`
@@ -310,22 +325,30 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 
 **Tasks:**
 - **Table class** — container for columns, filters, actions, pagination config
-- **All 8 column types** — TextColumn, IconColumn, ImageColumn, ColorColumn, SelectColumn, ToggleColumn, TextInputColumn, CheckboxColumn
-- **Column features** — sorting, searching, toggling visibility, formatting, relationship dot notation
-- **Filters** — BaseFilter, SelectFilter, TernaryFilter, QueryBuilder filter (uses @driven/query-builder), custom filters
+- **All 9 column types** — TextColumn (with `badge()` mode), IconColumn (with `boolean()` mode), ImageColumn, ColorColumn, SelectColumn, ToggleColumn, TextInputColumn, CheckboxColumn, ViewColumn (SRS FR-TBL-001)
+- **Column features** — sorting, searching (individual + global), toggling visibility, responsive breakpoints, formatting (date, number, currency, etc.), line clamping, descriptions, clipboard copying, URL opening, tooltips, relationship dot notation (SRS FR-TBL-002)
+- **Column groups** — ColumnGroup for multi-level table headers (SRS FR-TBL-009)
+- **Column layouts** — Split, Stack, Grid, Panel for responsive row rendering (SRS FR-TBL-010)
+- **Filters** — BaseFilter, SelectFilter, MultiSelectFilter, TernaryFilter, TrashedFilter (soft-delete), QueryBuilder filter (uses @driven/query-builder), custom filters, filter indicators (SRS FR-TBL-003)
 - **URL query parameter integration** — table state (page, sort, direction, filters, search) read from and written to URL query params (ADD ADR-012)
-- **Lucid query integration** — filters and sorting modify Lucid queries, pagination via Lucid
+- **Lucid query integration** — filters and sorting modify Lucid queries, pagination via Lucid (standard, simple, cursor modes)
+- **Eager loading** — relationship data used by columns automatically eager-loaded server-side before serialization (ADD ADR-015)
 - **Table actions** — record actions, header actions, bulk actions (uses @driven/actions)
-- **Summaries** — sum, average, count, min, max per column
-- **Row grouping** — group rows by column value
-- **Serialization** — table config + paginated data serialize to JSON for Inertia
-- **Tests** — query building, filtering, sorting, pagination, URL state, column rendering
+- **Summaries** — sum, average, count, min, max, range, values per column (computed as SQL aggregates)
+- **Row grouping** — group rows by column value with collapsible groups
+- **Deferred loading** — support for loading table data asynchronously after initial page render (SRS FR-TBL-005)
+- **Column manager** — column visibility toggle UI with reset to defaults (SRS FR-TBL-011)
+- **Table striping** — alternating row background colors
+- **Serialization** — table config (serialized once) + paginated data (serialized per request) to JSON for Inertia (ADD ADR-015 §4)
+- **Tests** — query building, filtering, sorting, pagination, URL state, column rendering, column groups, column layouts, deferred loading
 
 **Expected Output:**
 - Tables configurable with fluent API
+- All 9 column types render correctly with all formatting features
 - Lucid queries correctly modified by filters, sorts, and search
 - Table state round-trips through URL query parameters
-- Paginated results serialized for Inertia
+- Column groups and layouts enable responsive table designs
+- Paginated results serialized efficiently for Inertia
 - All tests passing
 
 **Reference:** Study `/home/saad/filament/packages/tables/src`
@@ -337,27 +360,33 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 **Goal:** Build the Svelte table UI — rendering, interactivity, and user experience.
 
 **Tasks:**
-- **Table Svelte component** — renders columns, rows, pagination, empty state
-- **Column Svelte components** — render each of the 8 column types
+- **Table Svelte component** — renders columns, rows, pagination, empty state, with striped rows support
+- **Column Svelte components** — render each of the 9 column types (including ViewColumn for custom Svelte components)
+- **Column group rendering** — multi-level table headers for column groups
+- **Column layout rendering** — Split, Stack, Grid, Panel layout components within rows
 - **Inline editing** — SelectColumn, ToggleColumn, TextInputColumn, CheckboxColumn submit changes via Inertia
-- **Filter UI** — filter panel (dropdown/sidebar/above-table layouts), QueryBuilder filter UI
+- **Filter UI** — filter panel (dropdown/sidebar/above-table layouts), QueryBuilder filter UI, filter indicator badges with remove buttons
 - **Search UI** — global search input and per-column search
-- **Pagination UI** — page navigation with configurable page sizes
+- **Pagination UI** — page navigation with configurable page sizes, support for standard/simple/cursor pagination modes
 - **URL state sync** — filter/sort/search/page changes update URL query params via `router.get()` with `preserveState: true`
 - **Bulk selection** — checkbox selection with "select all" and bulk action toolbar
-- **Row reordering** — drag-and-drop row reordering
+- **Row reordering** — drag-and-drop row reordering (SortableJS — ADD §2.2)
 - **Summary row** — rendered below table columns
 - **Row grouping UI** — collapsible groups
 - **Empty state** — customizable empty state component
 - **Tabs** — pre-filtered view tabs above the table
-- **Responsive** — column hiding at breakpoints, mobile-friendly layout
-- **Tests** — rendering, interaction, pagination, filtering, sorting, URL state
+- **Deferred loading UI** — loading skeleton placeholder while data loads asynchronously
+- **Column manager UI** — gear/cog dropdown for toggling column visibility with reset action
+- **Responsive** — column hiding at breakpoints, column layouts adapt to screen size, mobile-friendly layout
+- **Tests** — rendering, interaction, pagination, filtering, sorting, URL state, column groups, column layouts, deferred loading, column manager
 
 **Expected Output:**
 - Full interactive table with all features working in the browser
 - Filter, sort, search, paginate all trigger Inertia requests and update URL
+- Column groups and layouts render correctly with responsive behavior
 - Bulk actions work on selected records
 - Shareable table URLs work correctly
+- Column manager allows users to toggle column visibility
 - All tests passing
 
 ---
@@ -367,8 +396,8 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 **Goal:** Build the notification system — flash, database, and broadcast.
 
 **Tasks:**
-- **Notification class** — title, body, icon, color, status, actions, duration
-- **Flash notifications** — triggerable from server (via Inertia shared data) and client (JS API)
+- **Notification class** — title, body, icon, color, status, actions, duration, timestamp (date), inline display mode
+- **Flash notifications** — triggerable from server (via Inertia shared data) and client (JS API), inline display mode support
 - **Toast Svelte component** — animated notification toasts
 - **Database notifications** — Lucid model for persistent notifications, mark-as-read. Migration registered via service provider (ADD ADR-014).
 - **Notification center** — slide-over panel listing database notifications (Svelte component)
@@ -430,8 +459,9 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - **Render hooks** — named injection points throughout the shell
 - **Custom assets** — register custom CSS/JS per panel
 - **Multi-panel support** — multiple panels in one app with independent configuration
+- **Error notification system** — in production mode, replace full-screen error pages with user-friendly toast notifications, customizable per HTTP status code and per-panel/per-page (SRS FR-PNL-CFG-006)
 - **Events** — dispatch `driven:serving` event on panel boot (SRS §3.17)
-- **Tests** — panel registration, routing, middleware, theming, multi-panel
+- **Tests** — panel registration, routing, middleware, theming, multi-panel, error notifications
 
 **Expected Output:**
 - A panel shell renders with sidebar, top bar, and content area
@@ -641,19 +671,22 @@ Milestone 0 (Infrastructure)
     └── Milestone 1 (@driven/support)
         ├── Milestone 2 (@driven/schemas server)
         │   └── Milestone 3 (Svelte Foundation & Design System)
-        │       ├── Milestone 4 (@driven/forms server)
-        │       │   └── Milestone 5 (@driven/forms client)
-        │       │       └── Milestone 7 (@driven/actions)
-        │       │           ├── Milestone 8 (@driven/query-builder)
-        │       │           │   └── Milestone 9 (@driven/tables server)
-        │       │           │       └── Milestone 10 (@driven/tables client)
-        │       │           └── Milestone 13 (Panels — Core Shell)
-        │       │               ├── Milestone 14 (Panels — Resources & CRUD)
-        │       │               ├── Milestone 15 (Panels — Auth & Navigation)
-        │       │               └── Milestone 16 (Panels — Advanced)
-        │       └── Milestone 6 (@driven/infolists)
-        ├── Milestone 11 (@driven/notifications)
-        └── Milestone 12 (@driven/widgets) — depends on Milestone 3 + 9
+        │       ├── Milestone 4 (@driven/forms server) — depends on M2
+        │       │   └── Milestone 5 (@driven/forms client) — depends on M3 + M4
+        │       │       └── Milestone 7 (@driven/actions) — depends on M4 + M5
+        │       │           ├── Milestone 8 (@driven/query-builder) — depends on M4 + M7
+        │       │           │   └── Milestone 9 (@driven/tables server) — depends on M7 + M8
+        │       │           │       └── Milestone 10 (@driven/tables client) — depends on M3 + M9
+        │       │           │
+        │       │           └── Milestone 13 (Panels — Core Shell) — depends on M7 + M10 + M11
+        │       │               ├── Milestone 14 (Panels — Resources) — depends on M5 + M6 + M10 + M13
+        │       │               ├── Milestone 15 (Panels — Auth & Nav) — depends on M13
+        │       │               └── Milestone 16 (Panels — Advanced) — depends on M14 + M15
+        │       │
+        │       └── Milestone 6 (@driven/infolists) — depends on M2 + M3
+        │
+        ├── Milestone 11 (@driven/notifications) — depends on M1 (+ M3 for Svelte toast)
+        └── Milestone 12 (@driven/widgets) — depends on M3 + M10 (tables client for TableWidget)
 
 Milestone 17 (CLI) — after Milestone 16
 Milestone 18 (Testing Utils) — after Milestone 16
@@ -661,6 +694,12 @@ Milestone 19 (Integration Test) — after Milestone 18
 Milestone 20 (Documentation) — after Milestone 19
 Milestone 21 (Release) — after Milestone 20
 ```
+
+**Key dependency notes:**
+- Milestone 12 (widgets) depends on Milestone 10 (tables client) because `TableWidget` embeds a full table.
+- Milestone 13 (panels core shell) should wait for tables and notifications to be complete, since the shell integrates with both.
+- Milestone 14 (resources) depends on forms (client), infolists, and tables (client) since a resource uses all three.
+- Milestone 11 (notifications) only strictly depends on support (M1) for server logic, but needs Svelte foundation (M3) for the toast/center UI components.
 
 ---
 
