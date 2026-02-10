@@ -1,6 +1,6 @@
 # Software Requirements Specification (SRS)
 
-## Filament-TS: Server-Driven UI Framework for TypeScript
+## Driven: Server-Driven UI Framework for TypeScript
 
 **Document Version:** 1.1
 **Date:** 2026-02-10
@@ -12,19 +12,19 @@
 
 ### 1.1 Purpose
 
-This document specifies the software requirements for **Filament-TS**, an open-source Server-Driven UI (SDUI) framework for the TypeScript/JavaScript ecosystem. It is a spiritual successor to [Laravel Filament](https://filamentphp.com) — preserving Filament's design philosophy, developer experience, and core capabilities, while rethinking the implementation for TypeScript idioms and the JS ecosystem.
+This document specifies the software requirements for **Driven**, an open-source Server-Driven UI (SDUI) framework for the TypeScript/JavaScript ecosystem. It is a spiritual successor to [Laravel Filament](https://filamentphp.com) — preserving Filament's design philosophy, developer experience, and core capabilities, while rethinking the implementation for TypeScript idioms and the JS ecosystem.
 
 This SRS serves as the single source of truth for what the system must do. All design, architecture, and implementation decisions must trace back to requirements defined here.
 
 ### 1.2 Scope
 
-Filament-TS will provide:
+Driven will provide:
 
 - A **declarative, configuration-driven** approach to building full-featured admin panels, dashboards, CRUD interfaces, and form-based applications — entirely in TypeScript.
 - A **modular package architecture** that allows developers to use the full panel framework or individual packages (forms, tables, schemas, actions, notifications, widgets) independently.
 - A set of **standalone UI components** usable in any project context.
 
-Filament-TS is **not** limited to admin panels — it must be suitable for any application that benefits from convention-over-configuration UI patterns.
+Driven is **not** limited to admin panels — it must be suitable for any application that benefits from convention-over-configuration UI patterns.
 
 ### 1.3 Definitions & Acronyms
 
@@ -52,7 +52,7 @@ Filament-TS is **not** limited to admin panels — it must be suitable for any a
 
 ### 2.1 Product Perspective
 
-Filament-TS exists to bring Filament's battle-tested developer experience to the JavaScript/TypeScript ecosystem. It is:
+Driven exists to bring Laravel Filament's battle-tested developer experience to the JavaScript/TypeScript ecosystem. It is:
 
 - **Open-source** (license TBD, likely MIT).
 - A **spiritual successor** — not a line-for-line port. It preserves Filament's design philosophy and API ergonomics while leveraging TypeScript's type system, modern JS patterns, and the JS ecosystem.
@@ -78,7 +78,7 @@ Filament-TS exists to bring Filament's battle-tested developer experience to the
 
 **Primary users:** TypeScript/JavaScript developers building data-rich applications (admin panels, dashboards, internal tools, CRMs, CMSes, SaaS apps).
 
-**Skill level:** Same as Filament — accessible to developers with basic framework experience, while powerful enough for advanced use cases. Developers should not need deep frontend expertise to build high-quality interfaces.
+**Skill level:** Same as Laravel Filament — accessible to developers with basic framework experience, while powerful enough for advanced use cases. Developers should not need deep frontend expertise to build high-quality interfaces.
 
 ### 2.4 Constraints
 
@@ -107,19 +107,19 @@ Filament-TS exists to bring Filament's battle-tested developer experience to the
 
 | Package | Purpose | Dependencies |
 |---------|---------|-------------|
-| `@filament-ts/support` | Shared utilities, base component class, concerns/mixins, color system, icon system | None |
-| `@filament-ts/schemas` | Core schema engine, layout components, prime components | support |
-| `@filament-ts/forms` | Form field components with integrated validation | support, schemas |
-| `@filament-ts/infolists` | Read-only entry components | support, schemas |
-| `@filament-ts/actions` | Action system (buttons, modals, prebuilt CRUD actions) | support, schemas, forms |
-| `@filament-ts/tables` | Table builder (columns, filters, pagination, sorting) | support, schemas, forms, actions |
-| `@filament-ts/notifications` | Notification system (flash, database, broadcast) | support |
-| `@filament-ts/widgets` | Dashboard widgets (stats, charts, custom) | support, schemas |
-| `@filament-ts/panels` | Panel builder (auth, nav, resources, routing, theming) | All above |
+| `@driven/support` | Shared utilities, base component class, concerns/mixins, color system, icon system | None |
+| `@driven/schemas` | Core schema engine, layout components, prime components | support |
+| `@driven/forms` | Form field components with integrated validation | support, schemas |
+| `@driven/infolists` | Read-only entry components | support, schemas |
+| `@driven/actions` | Action system (buttons, modals, prebuilt CRUD actions) | support, schemas, forms |
+| `@driven/tables` | Table builder (columns, filters, pagination, sorting) | support, schemas, forms, actions |
+| `@driven/notifications` | Notification system (flash, database, broadcast) | support |
+| `@driven/widgets` | Dashboard widgets (stats, charts, custom) | support, schemas |
+| `@driven/panels` | Panel builder (auth, nav, resources, routing, theming) | All above |
 
 **FR-PKG-002:** Each package SHALL be independently installable and usable without requiring the panel builder.
 
-**FR-PKG-003:** The `@filament-ts/support` package SHALL provide the foundational utilities used by all other packages, including: base Component class, the closure/callback evaluation system, the configuration system, the color system, and the icon system.
+**FR-PKG-003:** The `@driven/support` package SHALL provide the foundational utilities used by all other packages, including: base Component class, the closure/callback evaluation system, the configuration system, the color system, and the icon system.
 
 ---
 
@@ -496,7 +496,7 @@ TextInput.make('name')
 
 Avatar, Badge, Breadcrumbs, Button, Callout, Checkbox, Dropdown, Empty State, Fieldset, Icon Button, Input, Input Wrapper, Link, Loading Indicator, Modal, Pagination, Section, Select, Tabs.
 
-**FR-CMP-002:** Standalone components SHALL be styled using Tailwind CSS with semantic CSS classes (`.fi-*` prefix) for customization.
+**FR-CMP-002:** Standalone components SHALL be styled using Tailwind CSS with semantic CSS classes (`.dr-*` prefix) for customization.
 
 ---
 
@@ -579,7 +579,7 @@ Avatar, Badge, Breadcrumbs, Button, Callout, Checkbox, Dropdown, Empty State, Fi
 
 ### 4.2 User Experience (UX)
 
-**NFR-UX-001:** The default UI SHALL be high-quality, modern, and consistent — matching or exceeding Filament's visual quality.
+**NFR-UX-001:** The default UI SHALL be high-quality, modern, and consistent — matching or exceeding Laravel Filament's visual quality.
 
 **NFR-UX-002:** All components SHALL be fully responsive (mobile, tablet, desktop).
 
@@ -613,7 +613,7 @@ Avatar, Badge, Breadcrumbs, Button, Callout, Checkbox, Dropdown, Empty State, Fi
 
 **NFR-EXT-001:** Every component SHALL be subclassable/extendable.
 
-**NFR-EXT-002:** The CSS system SHALL use semantic class names (`.fi-*`) that can be overridden without modifying framework internals.
+**NFR-EXT-002:** The CSS system SHALL use semantic class names (`.dr-*`) that can be overridden without modifying framework internals.
 
 **NFR-EXT-003:** Render hooks SHALL provide injection points throughout the UI.
 
@@ -705,10 +705,10 @@ class PostResource extends Resource {
 
 The project is considered successful when:
 
-1. A developer can install Filament-TS into a TypeScript project and build a fully functional admin panel with CRUD resources, in a comparable amount of code and effort as Laravel Filament.
+1. A developer can install Driven into a TypeScript project and build a fully functional admin panel with CRUD resources, in a comparable amount of code and effort as Laravel Filament.
 2. All functional requirements in Section 3 are implemented and documented.
-3. The developer experience (autocomplete, error messages, conventions) is at parity with or better than Filament.
-4. The visual quality of the default UI is at parity with Filament.
+3. The developer experience (autocomplete, error messages, conventions) is at parity with or better than Laravel Filament.
+4. The visual quality of the default UI is at parity with Laravel Filament.
 5. The framework passes comprehensive automated tests covering all packages.
 6. The framework is published as open-source with complete documentation.
 

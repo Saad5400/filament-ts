@@ -1,4 +1,4 @@
-# Filament TypeScript
+# Driven
 
 ## Main Goal
 
@@ -77,7 +77,7 @@ Text entry, icon entry, image entry, color entry, code entry, key-value entry, r
 - **Multi-tenancy** - built-in tenant support for SaaS apps
 
 ### Customizing Styling
-- **CSS hooks** - semantic CSS classes (`.fi-*`) for targeting components
+- **CSS hooks** - semantic CSS classes (`.dr-*`) for targeting components
 - **Colors** - customize color scheme
 - **Icons** - use any icon library (Blade Icons)
 
@@ -101,7 +101,7 @@ Text entry, icon entry, image entry, color entry, code entry, key-value entry, r
 - **Plugin development** - tools for building plugins
 
 ### Standalone Components
-Can use Filament components outside panels: Avatar, Badge, Breadcrumbs, Button, Checkbox, Dropdown, Empty State, Fieldset, Icon button, Input wrapper, Input, Link, Loading indicator, Modal, Pagination, Section, Select, Tabs
+Can use Driven components outside panels: Avatar, Badge, Breadcrumbs, Button, Checkbox, Dropdown, Empty State, Fieldset, Icon button, Input wrapper, Input, Link, Loading indicator, Modal, Pagination, Section, Select, Tabs
 
 ### Local copy of Filament
 
@@ -130,14 +130,14 @@ The following directory contains the filament project cloned from GitHub which c
   - Define the Svelte component structure (how schema JSON maps to component tree)
   - Define the Inertia page/controller patterns for each resource operation
 - [ ] **Implementation Phase** — Build packages bottom-up
-  - `@filament-ts/support` → `schemas` → `forms` → `infolists` → `actions` → `tables` → `notifications` → `widgets` → `panels`
+  - `@driven/support` → `schemas` → `forms` → `infolists` → `actions` → `tables` → `notifications` → `widgets` → `panels`
 - [ ] **Testing Phase** — Comprehensive test suite (Japa + Playwright)
 - [ ] **Documentation Phase** — API docs, guides, examples
 
 ### Technology Stack (decided)
-- **Backend:** AdonisJS v7+ (TypeScript-first, opinionated — mirrors Filament's relationship with Laravel)
+- **Backend:** AdonisJS v7+ (TypeScript-first, opinionated — mirrors Laravel Filament's relationship with Laravel)
 - **ORM:** Lucid ORM (direct coupling, no adapter pattern)
-- **CLI:** Ace (code generation commands: `node ace make:filament-resource`, etc.)
+- **CLI:** Ace (code generation commands: `node ace make:driven-resource`, etc.)
 - **Frontend:** Svelte 5 (runes) via Inertia.js
 - **SSR:** Enabled via `@adonisjs/inertia` SSR mode
 - **CSS:** Tailwind CSS 4
@@ -159,14 +159,14 @@ The following directory contains the filament project cloned from GitHub which c
 - **Icons:** Lucide Svelte (default, pluggable)
 
 ### Key Decisions Made
-- **Vision:** Spiritual successor to Filament for the JS/TS ecosystem (not a 1:1 port)
+- **Vision:** Spiritual successor to Laravel Filament for the JS/TS ecosystem (not a 1:1 port)
 - **License:** Open source
-- **Target Users:** Developers in general (same as Filament)
+- **Target Users:** Developers in general (same as Laravel Filament)
 - **Browser Support:** Modern browsers only
 - **SSR:** Required (Inertia SSR mode)
 - **Offline:** Works when full-stack app runs locally (no frontend-only offline)
 - **Plugin System:** Critical but not day-one
-- **No MVP approach:** Full feature parity with Filament is the goal
+- **No MVP approach:** Full feature parity with Laravel Filament is the goal
 - **Opinionated stack:** Users MUST use AdonisJS + Lucid + Svelte 5 (see ADR-001 in ADD.md)
 
 ### Developer Quick Start
@@ -174,16 +174,16 @@ The following directory contains the filament project cloned from GitHub which c
 > **Always use CLI commands when available. Do not manually create config files.**
 
 ```bash
-# Scaffold a new AdonisJS project with the Filament-TS stack
+# Scaffold a new AdonisJS project with the Driven stack
 npm init adonisjs -- -K=inertia --adapter=svelte --ssr --db=postgres
 
-# Install Filament-TS (once published)
-npm install @filament-ts/panels
+# Install Driven (once published)
+npm install @driven/panels
 
 # Generate resources, pages, widgets via Ace
-node ace make:filament-resource Post
-node ace make:filament-page Dashboard
-node ace make:filament-widget StatsOverview
+node ace make:driven-resource Post
+node ace make:driven-page Dashboard
+node ace make:driven-widget StatsOverview
 ```
 
 Starter kit: https://github.com/adonisjs/inertia-starter-kit

@@ -1,6 +1,6 @@
 # Architecture Design Document (ADD)
 
-## Filament-TS: Technology Stack & Design Decisions
+## Driven: Technology Stack & Design Decisions
 
 **Document Version:** 1.0
 **Date:** 2026-02-10
@@ -11,11 +11,11 @@
 
 ## 1. Executive Summary
 
-This document records all technology stack decisions for Filament-TS. The project is **opinionated** — it requires users to adopt the chosen stack. This is a deliberate decision to reduce complexity, maximize integration quality, and mirror Filament's tight coupling with Laravel.
+This document records all technology stack decisions for Driven. The project is **opinionated** — it requires users to adopt the chosen stack. This is a deliberate decision to reduce complexity, maximize integration quality, and mirror Laravel Filament's tight coupling with Laravel.
 
-**Core philosophy:** Filament is to Laravel as Filament-TS is to AdonisJS.
+**Core philosophy:** Laravel Filament is to Laravel as Driven is to AdonisJS.
 
-Filament-TS is an **AdonisJS package** — not a standalone framework. Users install it into an AdonisJS application, and it integrates with AdonisJS's routing, ORM, authentication, authorization, validation, CLI, and more.
+Driven is an **AdonisJS package** — not a standalone framework. Users install it into an AdonisJS application, and it integrates with AdonisJS's routing, ORM, authentication, authorization, validation, CLI, and more.
 
 ---
 
@@ -49,7 +49,7 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 
 | Concern | Library | Rationale |
 |---|---|---|
-| **Headless UI primitives** | Bits UI | Svelte 5 native, accessible, unstyled — foundation for all Filament-TS components |
+| **Headless UI primitives** | Bits UI | Svelte 5 native, accessible, unstyled — foundation for all Driven components |
 | **shadcn port** | shadcn-svelte | Tailwind-based component recipes built on Bits UI — reference for our component styling |
 | **Rich text editor** | Tiptap (`@tiptap/core` + Svelte wrapper) | Official Svelte support, ProseMirror-based, highly extensible |
 | **Code editor** | CodeMirror 6 | Lightweight, embeddable, Svelte-compatible via vanilla JS API |
@@ -76,17 +76,17 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 
 ### ADR-001: AdonisJS as the Required Backend Framework
 
-**Decision:** Filament-TS requires AdonisJS. It is not backend-agnostic.
+**Decision:** Driven requires AdonisJS. It is not backend-agnostic.
 
 **Rationale:**
 - AdonisJS is the closest TypeScript equivalent to Laravel — same philosophy (convention-over-configuration, batteries-included, opinionated).
 - Tight coupling with a single framework eliminates the complexity of adapter patterns, enabling deeper integration (routing, middleware, ORM, auth, CLI).
 - This mirrors Filament's relationship with Laravel exactly.
-- AdonisJS provides everything Filament-TS needs out of the box: Lucid ORM, Ace CLI, Bouncer authorization, VineJS validation, Inertia.js, Vite, Japa testing, and more.
+- AdonisJS provides everything Driven needs out of the box: Lucid ORM, Ace CLI, Bouncer authorization, VineJS validation, Inertia.js, Vite, Japa testing, and more.
 
 **Consequence:** Users must use AdonisJS. This limits the addressable market but dramatically simplifies the framework and improves integration quality.
 
-**SRS impact:** Supersedes `DR-001` (data adapter pattern). Filament-TS couples directly to Lucid ORM.
+**SRS impact:** Supersedes `DR-001` (data adapter pattern). Driven couples directly to Lucid ORM.
 
 ---
 
@@ -96,7 +96,7 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 
 **Rationale:**
 - **Component authoring DX** — Svelte 5's `$props()`, `$state()`, `$derived()`, and snippets produce significantly less boilerplate per component. When building 100+ components, this compounds.
-- **Reactivity model** — Runes (`$state`, `$derived`, `$effect`) are simpler and more explicit than Vue's ref/reactive/computed distinction. This is critical for building reactive forms, dynamic visibility, and the state-heavy UI Filament requires.
+- **Reactivity model** — Runes (`$state`, `$derived`, `$effect`) are simpler and more explicit than Vue's ref/reactive/computed distinction. This is critical for building reactive forms, dynamic visibility, and the state-heavy UI Driven requires.
 - **Performance** — Svelte compiles to vanilla JS with no runtime. Smaller bundles, faster initial load. Relevant for admin panels that load many components.
 - **Modern and opinionated** — Aligns with the project's vision of a modern, opinionated package.
 - **Ecosystem parity** — shadcn-svelte (Bits UI), Tiptap, CodeMirror 6, Chart.js all have Svelte support. No feature gaps vs Vue 3.
@@ -115,16 +115,16 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 - Same approach as Filament (Tailwind CSS).
 - Tailwind 4 offers CSS-first configuration, faster builds, and native CSS nesting.
 - Excellent integration with both Svelte and the shadcn-svelte ecosystem.
-- Semantic CSS classes (`.fi-*` prefix) will be used for component targeting, matching Filament's approach.
+- Semantic CSS classes (`.dr-*` prefix) will be used for component targeting, matching Laravel Filament's approach.
 
 ---
 
 ### ADR-004: Direct Lucid ORM Coupling (No Adapter Pattern)
 
-**Decision:** Filament-TS works directly with Lucid models. No data adapter abstraction layer.
+**Decision:** Driven works directly with Lucid models. No data adapter abstraction layer.
 
 **Rationale:**
-- Filament is tightly coupled to Eloquent. This coupling is what makes it powerful — auto-generating forms from model schemas, auto-resolving relationships, auto-building queries for tables.
+- Laravel Filament is tightly coupled to Eloquent. This coupling is what makes it powerful — auto-generating forms from model schemas, auto-resolving relationships, auto-building queries for tables.
 - An adapter pattern would add significant complexity and reduce the quality of integration.
 - Going opinionated means users accept the Lucid ORM requirement.
 - Lucid supports PostgreSQL, MySQL, MSSQL, SQLite — sufficient database coverage.
@@ -138,7 +138,7 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 **Decision:** Inertia.js (`@adonisjs/inertia` + `@inertiajs/svelte`) handles all server-to-client data flow.
 
 **Rationale:**
-- Inertia is the Server-Driven UI bridge — the server defines page data, Inertia delivers it to Svelte components. This is the TypeScript equivalent of Livewire's role in Filament.
+- Inertia is the Server-Driven UI bridge — the server defines page data, Inertia delivers it to Svelte components. This is the TypeScript equivalent of Livewire's role in Laravel Filament.
 - AdonisJS has an official Inertia adapter with SSR support.
 - Inertia's `useForm()` handles form submissions, validation errors, and redirects — covering most of the form lifecycle.
 - The [AdonisJS Inertia Starter Kit](https://github.com/adonisjs/inertia-starter-kit) supports Svelte via the `--adapter=svelte` flag.
@@ -149,13 +149,13 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 
 ### ADR-006: Ace CLI for Code Generation
 
-**Decision:** Filament-TS code generators are implemented as Ace commands.
+**Decision:** Driven code generators are implemented as Ace commands.
 
 **Rationale:**
 - Ace is AdonisJS's built-in CLI framework, analogous to Artisan.
 - Users are already familiar with `node ace` commands.
 - Ace provides argument parsing, flags, prompts, and terminal UI out of the box.
-- Code generation commands (e.g., `node ace make:filament-resource`, `node ace make:filament-page`) feel native to the AdonisJS workflow.
+- Code generation commands (e.g., `node ace make:driven-resource`, `node ace make:driven-page`) feel native to the AdonisJS workflow.
 
 ---
 
@@ -165,7 +165,7 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 
 **Rationale:**
 - VineJS is AdonisJS's official validation library, deeply integrated with the framework.
-- With Inertia, the validation flow is: submit form → server validates with VineJS → errors returned to client via Inertia → displayed next to fields. This is the same pattern Filament uses with Laravel Validation + Livewire.
+- With Inertia, the validation flow is: submit form → server validates with VineJS → errors returned to client via Inertia → displayed next to fields. This is the same pattern Laravel Filament uses with Laravel Validation + Livewire.
 - No need for a separate client-side validation library (no Zod, no Valibot). VineJS is the single source of truth.
 
 ---
@@ -175,8 +175,8 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 **Decision:** `@adonisjs/bouncer` handles all authorization (policies and abilities).
 
 **Rationale:**
-- Direct equivalent of Laravel Policies used by Filament.
-- Filament-TS resources will check Bouncer abilities for `viewAny`, `view`, `create`, `update`, `delete`, `forceDelete`, `restore`, `reorder` — exactly as Filament checks Laravel policies.
+- Direct equivalent of Laravel Policies used by Laravel Filament.
+- Driven resources will check Bouncer abilities for `viewAny`, `view`, `create`, `update`, `delete`, `forceDelete`, `restore`, `reorder` — exactly as Laravel Filament checks Laravel policies.
 
 ---
 
@@ -195,12 +195,12 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 
 ### ADR-010: Bits UI as Headless Component Foundation
 
-**Decision:** Bits UI is the headless component primitive layer for all interactive Filament-TS components.
+**Decision:** Bits UI is the headless component primitive layer for all interactive Driven components.
 
 **Rationale:**
 - Bits UI is the Svelte 5 headless component library (equivalent to Radix UI for React, Reka UI for Vue).
 - Provides accessible, unstyled primitives: dialogs, dropdowns, popovers, tabs, tooltips, etc.
-- shadcn-svelte is built on Bits UI — we use the same foundation but with our own Filament-specific styling and API.
+- shadcn-svelte is built on Bits UI — we use the same foundation but with our own Driven-specific styling and API.
 - WAI-ARIA compliant, supporting SRS accessibility requirements (NFR-UX-003).
 
 ---
@@ -209,7 +209,7 @@ Filament-TS is an **AdonisJS package** — not a standalone framework. Users ins
 
 ### 4.1 New Project Setup
 
-To create a new AdonisJS project with Filament-TS's required stack, use the official AdonisJS Inertia Starter Kit:
+To create a new AdonisJS project with Driven's required stack, use the official AdonisJS Inertia Starter Kit:
 
 ```bash
 npm init adonisjs -- -K=inertia --adapter=svelte --ssr --db=postgres
@@ -224,12 +224,12 @@ Available flags:
 - `--db=postgres|mysql|sqlite|mssql` — Configures the database dialect
 - `--auth-guard=session|access_tokens|basic_auth` — Configures auth guard
 
-### 4.2 Filament-TS Package Structure
+### 4.2 Driven Package Structure
 
-Filament-TS is organized as a monorepo of AdonisJS-compatible packages:
+Driven is organized as a monorepo of AdonisJS-compatible packages:
 
 ```
-filament-ts/
+driven/
 ├── packages/
 │   ├── support/          # Base classes, mixins, utilities, color/icon systems
 │   ├── schemas/          # Core schema engine, layout components, prime components
@@ -250,24 +250,24 @@ filament-ts/
 Each package registers as an **AdonisJS service provider** and may include:
 - **Server-side code** (TypeScript) — resource definitions, schema builders, Ace commands, middleware, controllers
 - **Client-side code** (Svelte 5) — Inertia page components, form field components, table components, UI components
-- **Styles** (Tailwind CSS 4) — component styles with `.fi-*` prefix
+- **Styles** (Tailwind CSS 4) — component styles with `.dr-*` prefix
 
 ### 4.3 Developer Workflow
 
 ```bash
-# Scaffold a new AdonisJS + Filament-TS project
+# Scaffold a new AdonisJS + Driven project
 npm init adonisjs -- -K=inertia --adapter=svelte --ssr --db=postgres
 cd my-project
-npm install @filament-ts/panels        # Installs all packages
+npm install @driven/panels        # Installs all packages
 
 # Generate a resource
-node ace make:filament-resource Post
+node ace make:driven-resource Post
 
 # Generate a custom page
-node ace make:filament-page Dashboard
+node ace make:driven-page Dashboard
 
 # Generate a widget
-node ace make:filament-widget StatsOverview
+node ace make:driven-widget StatsOverview
 
 # Run dev server
 node ace serve --hmr
@@ -307,7 +307,7 @@ node ace serve --hmr
 
 ### 5.2 Component Composition (TypeScript Mixins)
 
-Filament uses PHP traits extensively (HasColor, HasIcon, HasLabel, etc.). The TypeScript equivalent uses **mixin functions**:
+Laravel Filament uses PHP traits extensively (HasColor, HasIcon, HasLabel, etc.). The TypeScript equivalent uses **mixin functions**:
 
 ```typescript
 // Mixin pattern — equivalent to PHP traits
@@ -336,7 +336,7 @@ class TextColumn extends HasColor(HasIcon(HasLabel(BaseColumn))) {
 
 ### 5.3 Closure/Callback Evaluation
 
-Filament allows any config value to be a static value OR a closure. The TypeScript equivalent:
+Laravel Filament allows any config value to be a static value OR a closure. The TypeScript equivalent:
 
 ```typescript
 type Resolvable<T> = T | ((context: ResolveContext) => T)
@@ -394,11 +394,11 @@ The following design concerns will be resolved during implementation (Phase 3):
 
 | Concern | Notes |
 |---|---|
-| **Exact Svelte component structure** | How schema JSON maps to Svelte component tree — resolved during `@filament-ts/schemas` implementation |
+| **Exact Svelte component structure** | How schema JSON maps to Svelte component tree — resolved during `@driven/schemas` implementation |
 | **Plugin registration API** | How third-party plugins hook into the panel — deferred per SRS (not day-one) |
-| **Multi-tenancy scoping** | How Lucid queries are automatically scoped to tenant — resolved during `@filament-ts/panels` implementation |
-| **Import/Export action formats** | CSV parsing library choice — resolved during `@filament-ts/actions` implementation |
-| **Markdown editor library** | Specific library for MarkdownEditor field — resolved during `@filament-ts/forms` implementation |
+| **Multi-tenancy scoping** | How Lucid queries are automatically scoped to tenant — resolved during `@driven/panels` implementation |
+| **Import/Export action formats** | CSV parsing library choice — resolved during `@driven/actions` implementation |
+| **Markdown editor library** | Specific library for MarkdownEditor field — resolved during `@driven/forms` implementation |
 
 ---
 
@@ -407,7 +407,7 @@ The following design concerns will be resolved during implementation (Phase 3):
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | Svelte 5 ecosystem gaps (missing library) | Low | Medium | Svelte easily wraps vanilla JS libraries; Tiptap + CodeMirror + Chart.js all confirmed |
-| AdonisJS market share limits adoption | Medium | Medium | AdonisJS is growing; Filament-TS could itself drive AdonisJS adoption (as Filament drove Laravel adoption) |
+| AdonisJS market share limits adoption | Medium | Medium | AdonisJS is growing; Driven could itself drive AdonisJS adoption (as Laravel Filament drove Laravel adoption) |
 | Inertia Svelte adapter less tested than Vue | Medium | Low | Inertia's Svelte adapter is officially maintained; issues can be contributed upstream |
 | Svelte 5 runes API changes | Low | High | Svelte 5 is stable; pin to specific versions |
 
