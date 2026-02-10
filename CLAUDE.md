@@ -113,36 +113,82 @@ The following directory contains the filament project cloned from GitHub which c
 
 ## Project Status
 
-**Current SDLC Phase:** Requirements Gathering & Analysis (Phase 1)
+**Current SDLC Phase:** Design (Phase 2) — Technology stack decisions complete, architecture patterns defined
 
 ### Completed
 - [x] Requirements Gathering — stakeholder questions answered
 - [x] Software Requirements Specification (SRS) — see `SRS.md`
+- [x] Technology Stack Decisions — see `ADD.md`
+- [x] Architecture Design Document (ADD) — see `ADD.md`
 
 ### Next Steps
-- [ ] **Design Phase** — Architecture, technology decisions, system design document
-  - Choose JS framework
-  - Choose data layer approach
-  - Choose SSR strategy
-  - Choose state management
-  - Design the component composition system (TS equivalent of PHP traits)
-  - Design the schema engine
-  - Design the closure/callback evaluation system
-  - Produce Architecture Design Document (ADD)
+- [ ] **Design Phase (continued)** — Detailed design
+  - Design the component composition system (TypeScript mixins — pattern defined in ADD §5.2)
+  - Design the schema engine (SDUI flow defined in ADD §5.1)
+  - Design the closure/callback evaluation system (pattern defined in ADD §5.3)
+  - Design the package provider/registration system (AdonisJS service providers)
+  - Define the Svelte component structure (how schema JSON maps to component tree)
+  - Define the Inertia page/controller patterns for each resource operation
 - [ ] **Implementation Phase** — Build packages bottom-up
-- [ ] **Testing Phase** — Comprehensive test suite
+  - `@filament-ts/support` → `schemas` → `forms` → `infolists` → `actions` → `tables` → `notifications` → `widgets` → `panels`
+- [ ] **Testing Phase** — Comprehensive test suite (Japa + Playwright)
 - [ ] **Documentation Phase** — API docs, guides, examples
+
+### Technology Stack (decided)
+- **Backend:** AdonisJS v7+ (TypeScript-first, opinionated — mirrors Filament's relationship with Laravel)
+- **ORM:** Lucid ORM (direct coupling, no adapter pattern)
+- **CLI:** Ace (code generation commands: `node ace make:filament-resource`, etc.)
+- **Frontend:** Svelte 5 (runes) via Inertia.js
+- **SSR:** Enabled via `@adonisjs/inertia` SSR mode
+- **CSS:** Tailwind CSS 4
+- **Validation:** VineJS (server-side, errors propagated via Inertia)
+- **Authentication:** `@adonisjs/auth`
+- **Authorization:** `@adonisjs/bouncer` (equivalent to Laravel Policies)
+- **Build tool:** Vite (`@adonisjs/vite`)
+- **Testing:** Japa (unit/integration) + Playwright (E2E)
+- **File storage:** `@adonisjs/drive`
+- **Mail:** `@adonisjs/mail`
+- **Cache:** `@adonisjs/cache`
+- **Real-time:** `@adonisjs/transmit` (SSE, for broadcast notifications)
+- **Security:** `@adonisjs/shield` (CSRF, XSS)
+- **i18n:** AdonisJS i18n
+- **UI primitives:** Bits UI (headless) + shadcn-svelte (styling reference)
+- **Rich text:** Tiptap
+- **Code editor:** CodeMirror 6
+- **Charts:** Chart.js
+- **Icons:** Lucide Svelte (default, pluggable)
 
 ### Key Decisions Made
 - **Vision:** Spiritual successor to Filament for the JS/TS ecosystem (not a 1:1 port)
 - **License:** Open source
 - **Target Users:** Developers in general (same as Filament)
 - **Browser Support:** Modern browsers only
-- **SSR:** Required
+- **SSR:** Required (Inertia SSR mode)
 - **Offline:** Works when full-stack app runs locally (no frontend-only offline)
 - **Plugin System:** Critical but not day-one
 - **No MVP approach:** Full feature parity with Filament is the goal
+- **Opinionated stack:** Users MUST use AdonisJS + Lucid + Svelte 5 (see ADR-001 in ADD.md)
+
+### Developer Quick Start
+
+> **Always use CLI commands when available. Do not manually create config files.**
+
+```bash
+# Scaffold a new AdonisJS project with the Filament-TS stack
+npm init adonisjs -- -K=inertia --adapter=svelte --ssr --db=postgres
+
+# Install Filament-TS (once published)
+npm install @filament-ts/panels
+
+# Generate resources, pages, widgets via Ace
+node ace make:filament-resource Post
+node ace make:filament-page Dashboard
+node ace make:filament-widget StatsOverview
+```
+
+Starter kit: https://github.com/adonisjs/inertia-starter-kit
 
 ### Project Documents
 - `CLAUDE.md` — Project context and status (this file)
 - `SRS.md` — Software Requirements Specification
+- `ADD.md` — Architecture Design Document (technology stack & design decisions)

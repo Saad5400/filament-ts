@@ -2,9 +2,9 @@
 
 ## Filament-TS: Server-Driven UI Framework for TypeScript
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Date:** 2026-02-10
-**Status:** Draft — Requirements Gathering Phase
+**Status:** Approved — Design Phase Active
 
 ---
 
@@ -56,7 +56,7 @@ Filament-TS exists to bring Filament's battle-tested developer experience to the
 
 - **Open-source** (license TBD, likely MIT).
 - A **spiritual successor** — not a line-for-line port. It preserves Filament's design philosophy and API ergonomics while leveraging TypeScript's type system, modern JS patterns, and the JS ecosystem.
-- **Framework-agnostic where possible** at the data layer, but opinionated about rendering (using a modern JS framework for SSR-capable rendering).
+- **Opinionated** — requires AdonisJS as the backend framework, Lucid ORM for data, and Svelte 5 for rendering. See `ADD.md` for the full technology stack and rationale.
 
 ### 2.2 Product Features (High-Level)
 
@@ -92,9 +92,10 @@ Filament-TS exists to bring Filament's battle-tested developer experience to the
 
 ### 2.5 Assumptions & Dependencies
 
-- A backend API/server exists (Filament-TS provides the UI framework, not the backend ORM/database layer).
-- The specific JS framework, ORM adapter, and runtime will be determined in the Design phase.
-- Tailwind CSS will be used for the styling foundation (consistent with Filament's approach).
+- The user is running an **AdonisJS v7+** application with Lucid ORM, Inertia.js, and Svelte 5.
+- The application was scaffolded using the [AdonisJS Inertia Starter Kit](https://github.com/adonisjs/inertia-starter-kit) with `--adapter=svelte --ssr`.
+- Tailwind CSS 4 is used for the styling foundation (consistent with Filament's approach).
+- All technology stack decisions are recorded in `ADD.md` (Architecture Design Document).
 
 ---
 
@@ -332,7 +333,7 @@ TextInput.make('name')
 - Support the same display options as flash notifications
 
 **FR-NOT-003:** Broadcast notifications SHALL:
-- Be delivered in real-time via WebSocket connections
+- Be delivered in real-time via Server-Sent Events (`@adonisjs/transmit`)
 - Support the same display options as flash notifications
 
 ---
@@ -515,7 +516,7 @@ Avatar, Badge, Breadcrumbs, Button, Callout, Checkbox, Dropdown, Empty State, Fi
 
 ### 3.12 Code Generation (CLI)
 
-**FR-CLI-001:** The framework SHALL provide a CLI tool to generate:
+**FR-CLI-001:** The framework SHALL provide **Ace commands** (AdonisJS CLI) to generate:
 - Resources (with optional --generate for auto-generating from model/schema, --simple for modal resources, --soft-deletes, --view)
 - Pages (custom pages, resource pages)
 - Widgets (stats, charts, tables, custom)
@@ -535,7 +536,7 @@ Avatar, Badge, Breadcrumbs, Button, Callout, Checkbox, Dropdown, Empty State, Fi
 - Actions (test action execution, modals, authorization)
 - Notifications (test notification delivery and content)
 
-**FR-TST-002:** Testing utilities SHALL integrate with popular JS testing frameworks.
+**FR-TST-002:** Testing utilities SHALL integrate with **Japa** (AdonisJS's testing framework).
 
 ---
 
@@ -632,15 +633,15 @@ Avatar, Badge, Breadcrumbs, Button, Callout, Checkbox, Dropdown, Empty State, Fi
 
 ## 5. Data Requirements
 
-### 5.1 Data Abstraction Layer
+### 5.1 Data Layer (Lucid ORM)
 
-**DR-001:** The framework SHALL NOT be coupled to a specific ORM or database. A data adapter pattern SHALL be used so that any backend (REST API, GraphQL, Prisma, Drizzle, Knex, etc.) can provide data.
+**DR-001:** The framework SHALL be coupled to **Lucid ORM** (AdonisJS's SQL ORM). Resources declare a Lucid model directly. *(Updated from v1.0 — the data adapter pattern was removed in favor of direct Lucid coupling per ADR-004 in `ADD.md`.)*
 
-**DR-002:** The data adapter SHALL support standard CRUD operations: list (with pagination, sorting, filtering), get, create, update, delete.
+**DR-002:** The framework SHALL support standard CRUD operations via Lucid: list (with pagination, sorting, filtering), find, create, update, delete.
 
-**DR-003:** The data adapter SHALL support relationship operations: belongsTo, hasMany, belongsToMany, morphTo, morphMany, etc.
+**DR-003:** The framework SHALL support Lucid relationship operations: belongsTo, hasOne, hasMany, manyToMany, hasManyThrough, morphTo, morphMany, morphToMany, etc.
 
-**DR-004:** The data adapter SHALL support soft-delete operations: trash, restore, force-delete.
+**DR-004:** The framework SHALL support Lucid soft-delete operations (via `@adonisjs/lucid` soft-deletes mixin): trash, restore, force-delete.
 
 ---
 
