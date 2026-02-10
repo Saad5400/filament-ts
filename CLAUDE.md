@@ -113,4 +113,36 @@ The following directory contains the filament project cloned from GitHub which c
 
 ## Project Status
 
-Greenfield. Currently in planning phase.
+**Current SDLC Phase:** Requirements Gathering & Analysis (Phase 1)
+
+### Completed
+- [x] Requirements Gathering — stakeholder questions answered
+- [x] Software Requirements Specification (SRS) — see `SRS.md`
+
+### Next Steps
+- [ ] **Design Phase** — Architecture, technology decisions, system design document
+  - Choose JS framework
+  - Choose data layer approach
+  - Choose SSR strategy
+  - Choose state management
+  - Design the component composition system (TS equivalent of PHP traits)
+  - Design the schema engine
+  - Design the closure/callback evaluation system
+  - Produce Architecture Design Document (ADD)
+- [ ] **Implementation Phase** — Build packages bottom-up
+- [ ] **Testing Phase** — Comprehensive test suite
+- [ ] **Documentation Phase** — API docs, guides, examples
+
+### Key Decisions Made
+- **Vision:** Spiritual successor to Filament for the JS/TS ecosystem (not a 1:1 port)
+- **License:** Open source
+- **Target Users:** Developers in general (same as Filament)
+- **Browser Support:** Modern browsers only
+- **SSR:** Required
+- **Offline:** Works when full-stack app runs locally (no frontend-only offline)
+- **Plugin System:** Critical but not day-one
+- **No MVP approach:** Full feature parity with Filament is the goal
+
+### Project Documents
+- `CLAUDE.md` — Project context and status (this file)
+- `SRS.md` — Software Requirements Specification
