@@ -2,7 +2,7 @@
 
 ## Driven: Server-Driven UI Framework for TypeScript
 
-**Document Version:** 1.1
+**Document Version:** 1.2
 **Date:** 2026-02-10
 **Status:** Approved — Design Phase Active
 
@@ -54,7 +54,7 @@ Driven is **not** limited to admin panels — it must be suitable for any applic
 
 Driven exists to bring Laravel Filament's battle-tested developer experience to the JavaScript/TypeScript ecosystem. It is:
 
-- **Open-source** (license TBD, likely MIT).
+- **Open-source** (MIT license).
 - A **spiritual successor** — not a line-for-line port. It preserves Filament's design philosophy and API ergonomics while leveraging TypeScript's type system, modern JS patterns, and the JS ecosystem.
 - **Opinionated** — requires AdonisJS as the backend framework, Lucid ORM for data, and Svelte 5 for rendering. See `ADD.md` for the full technology stack and rationale.
 
@@ -63,7 +63,7 @@ Driven exists to bring Laravel Filament's battle-tested developer experience to 
 1. **Panel Builder** — Multi-panel application shell with auth, navigation, theming, and routing.
 2. **Resources (CRUD)** — Declarative CRUD interfaces for data models.
 3. **Tables** — Interactive data tables with columns, filters, sorting, searching, pagination, grouping, summaries, and actions.
-4. **Forms** — 20+ field types with integrated validation, dynamic visibility, and relationship support.
+4. **Forms** — 27 field types with integrated validation, dynamic visibility, and relationship support.
 5. **Schemas** — The core composition engine: arrays of component objects that define UI.
 6. **Infolists** — Read-only data display using entry components.
 7. **Actions** — Buttons with optional modals/forms/logic — usable anywhere in the UI.
@@ -112,9 +112,10 @@ Driven exists to bring Laravel Filament's battle-tested developer experience to 
 | `@driven/forms` | Form field components with integrated validation | support, schemas |
 | `@driven/infolists` | Read-only entry components | support, schemas |
 | `@driven/actions` | Action system (buttons, modals, prebuilt CRUD actions) | support, schemas, forms |
-| `@driven/tables` | Table builder (columns, filters, pagination, sorting) | support, schemas, forms, actions |
+| `@driven/query-builder` | Advanced multi-condition query builder (constraints, operators, rule builder UI) | support, schemas, forms |
+| `@driven/tables` | Table builder (columns, filters, pagination, sorting) | support, schemas, forms, actions, query-builder |
 | `@driven/notifications` | Notification system (flash, database, broadcast) | support |
-| `@driven/widgets` | Dashboard widgets (stats, charts, custom) | support, schemas |
+| `@driven/widgets` | Dashboard widgets (stats, charts, tables, custom) | support, schemas, tables |
 | `@driven/panels` | Panel builder (auth, nav, resources, routing, theming) | All above |
 
 **FR-PKG-002:** Each package SHALL be independently installable and usable without requiring the panel builder.
@@ -190,12 +191,19 @@ TextInput.make('name')
 | 18 | Slider | Range/value slider |
 | 19 | CodeEditor | Code editor with syntax highlighting |
 | 20 | Hidden | Hidden form field |
+| 21 | MorphToSelect | Polymorphic relationship select — select morphTo related model type and record |
+| 22 | Placeholder | Display-only static text/content within a form (no user input) |
+| 23 | OneTimeCodeInput | OTP/MFA verification code input with individual digit boxes |
+| 24 | DatePicker | Date-only selection (simplified variant of DateTimePicker) |
+| 25 | TimePicker | Time-only selection (simplified variant of DateTimePicker) |
+| 26 | ViewField | Render a custom Svelte component inline within a form |
+| 27 | TableSelect | Select records via a searchable table in a modal popup |
 
 **FR-FRM-002:** All fields SHALL support integrated validation with methods like `required()`, `maxLength()`, `email()`, `unique()`, `rules()`, etc. Both client-side and server-side validation SHALL be supported.
 
 **FR-FRM-003:** Fields SHALL support dynamic visibility via `visible()`, `hidden()`, `visibleOn()`, `hiddenOn()` methods.
 
-**FR-FRM-004:** Fields SHALL support reactive/live updates — when a field value changes, other fields can react (update options, toggle visibility, compute values).
+**FR-FRM-004:** Fields SHALL support reactive/live updates — when a field value changes, other fields can react (update options, toggle visibility, compute values). Reactive updates SHALL be implemented via dedicated AJAX endpoints (see ADD ADR-011). Fields SHALL support `live()`, `lazy()` (on blur), and `debounce()` modifiers. Fields SHALL support `afterStateUpdated()` server-side callbacks and client-side Svelte reactivity for simple cases.
 
 **FR-FRM-005:** Forms SHALL support saving data to relationships:
 - BelongsTo, HasOne, MorphOne via layout components with `relationship()` method
@@ -231,7 +239,7 @@ TextInput.make('name')
 - Base filter (custom query + form UI)
 - Select filter (filter by a select dropdown)
 - Ternary filter (yes/no/all)
-- Query builder (advanced multi-condition filter)
+- Query builder integration (advanced multi-condition filter, provided by `@driven/query-builder` — see §3.16)
 - Custom filters
 - Configurable filter layout (dropdown, sidebar, above table)
 
@@ -254,6 +262,8 @@ TextInput.make('name')
 **FR-TBL-006:** Columns SHALL support displaying data from relationships using dot notation (e.g., `author.name`).
 
 **FR-TBL-007:** Developers SHALL be able to create custom column types.
+
+**FR-TBL-008:** Table state (current page, sort column, sort direction, active filters, search query) SHALL be persisted in URL query parameters to enable shareable/bookmarkable table views and proper browser back/forward navigation. See ADD ADR-012.
 
 ---
 
@@ -296,6 +306,8 @@ TextInput.make('name')
 - Configurable width, alignment, close behavior
 
 **FR-ACT-004:** The package SHALL provide prebuilt actions:
+
+*Record actions:*
 - CreateAction
 - EditAction
 - ViewAction
@@ -303,18 +315,35 @@ TextInput.make('name')
 - ForceDeleteAction
 - RestoreAction
 - ReplicateAction
-- ImportAction (CSV import)
-- ExportAction (CSV/XLSX export)
 
-**FR-ACT-005:** Actions SHALL support grouping (dropdown of actions).
+*Relationship actions (for relation managers):*
+- AttachAction (attach existing records to BelongsToMany)
+- DetachAction (detach records from BelongsToMany)
+- AssociateAction (associate a record to HasMany)
+- DissociateAction (dissociate a record from HasMany)
+
+*Bulk actions (operate on selected records):*
+- DeleteBulkAction
+- ForceDeleteBulkAction
+- RestoreBulkAction
+- DetachBulkAction
+- DissociateBulkAction
+
+> **Deferred:** ImportAction (CSV import) and ExportAction (CSV/XLSX export) are deferred to a future release. They require a background job/queue system that is out of scope for the initial version. See ADD §7.
+
+**FR-ACT-005:** Actions SHALL support grouping (dropdown of actions) via ActionGroup and BulkActionGroup.
 
 **FR-ACT-006:** Actions SHALL support lifecycle hooks (before, after).
 
-**FR-ACT-007:** Actions SHALL support authorization checks.
+**FR-ACT-007:** Actions SHALL support authorization checks via `@adonisjs/bouncer`.
 
 **FR-ACT-008:** Actions SHALL support key bindings.
 
 **FR-ACT-009:** Actions SHALL be usable in any context: page headers, form footers, table rows, table headers, table toolbars, schema components, notifications.
+
+**FR-ACT-010:** Actions SHALL support rate limiting to prevent abuse of sensitive operations.
+
+**FR-ACT-011:** Actions SHALL dispatch events via AdonisJS's event emitter (`@adonisjs/events`) at key lifecycle points (e.g., `driven:action.called`, `driven:action.completed`). See §3.18 for the full events system.
 
 ---
 
@@ -352,7 +381,7 @@ TextInput.make('name')
 
 **FR-WDG-004:** Widgets SHALL support lazy loading.
 
-**FR-WDG-005:** Widgets SHALL support polling (auto-refresh at intervals).
+> **Deferred:** Widget polling (auto-refresh at intervals) is deferred to a future release.
 
 ---
 
@@ -563,6 +592,74 @@ Avatar, Badge, Breadcrumbs, Button, Callout, Checkbox, Dropdown, Empty State, Fi
 
 ---
 
+### 3.16 Query Builder
+
+**FR-QB-001:** The `@driven/query-builder` package SHALL provide an advanced multi-condition filter system with a constraint/operator architecture.
+
+**FR-QB-002:** The following constraint types SHALL be supported:
+
+| Constraint | Description |
+|---|---|
+| TextConstraint | Text matching (equals, contains, starts with, ends with) |
+| NumberConstraint | Numeric comparison (equals, min, max) with relationship aggregation support |
+| DateConstraint | Date comparison (before, after, is date, is month, is year) |
+| BooleanConstraint | Boolean filtering (is true, is false) |
+| SelectConstraint | Enum/option-based filtering |
+| RelationshipConstraint | Filter by relationship existence, count, or related record values |
+
+**FR-QB-003:** Each constraint SHALL have configurable operators. Operators SHALL modify the underlying Lucid query.
+
+**FR-QB-004:** The query builder SHALL provide a visual rule builder UI (RuleBuilder form component) allowing users to add/remove/combine conditions with AND/OR logic.
+
+**FR-QB-005:** Constraints SHALL support nullable state (is filled / is empty operators).
+
+**FR-QB-006:** The query builder SHALL integrate with `@driven/tables` as a filter type (QueryBuilder filter).
+
+---
+
+### 3.17 Events System
+
+**FR-EVT-001:** The framework SHALL dispatch domain events via AdonisJS's event emitter (`@adonisjs/events`) at key lifecycle points:
+- `driven:record.creating` / `driven:record.created`
+- `driven:record.updating` / `driven:record.updated`
+- `driven:record.saving` / `driven:record.saved`
+- `driven:record.deleting` / `driven:record.deleted`
+- `driven:action.calling` / `driven:action.called`
+- `driven:tenant.set`
+- `driven:serving` (panel boot)
+
+**FR-EVT-002:** All events SHALL carry contextual data (record, user, resource, action name, etc.) so listeners can react appropriately.
+
+**FR-EVT-003:** Developers SHALL be able to register custom event listeners for any Driven event in their AdonisJS application.
+
+---
+
+### 3.18 Flow Control
+
+**FR-FLC-001:** The framework SHALL provide `Cancel` and `Halt` exception classes for controlling action and lifecycle hook flow:
+- Throwing `Halt` inside a lifecycle hook SHALL abort the current operation silently (e.g., prevent save without showing an error).
+- Throwing `Cancel` inside a lifecycle hook SHALL abort the current operation and optionally display a user-facing notification.
+
+**FR-FLC-002:** Flow control exceptions SHALL be catchable at the framework level and SHALL NOT result in unhandled error pages.
+
+---
+
+### 3.19 File Upload Architecture
+
+**FR-FUP-001:** File uploads SHALL work via standard multipart POST requests through Inertia form submissions, integrated with `@adonisjs/drive` for storage.
+
+**FR-FUP-002:** File upload fields SHALL support:
+- Client-side preview generation (via File API / FileReader) before form submission
+- Server-side file type and size validation
+- Multiple file uploads
+- Image-specific features (preview thumbnails, aspect ratio constraints)
+
+**FR-FUP-003:** For large file uploads, the framework SHALL support a dedicated upload endpoint that returns a temporary file reference. The temporary reference is then submitted with the form, decoupling the upload from the form submission.
+
+> **Deferred:** Chunked uploads and client-side image cropping are deferred to a future release.
+
+---
+
 ## 4. Non-Functional Requirements
 
 ### 4.1 Developer Experience (DX)
@@ -696,6 +793,7 @@ class PostResource extends Resource {
 | Extensibility | High | NFR-EXT-001 through NFR-EXT-004, FR-PLG-* |
 | Accessibility | High | NFR-UX-003 |
 | Security | High | NFR-SEC-001 through NFR-SEC-004 |
+| Observability | High | FR-EVT-001 through FR-EVT-003 |
 | Internationalization | Medium | FR-I18N-001 through FR-I18N-003 |
 | Plugin System | Medium (not day-one) | FR-PLG-001 through FR-PLG-003 |
 
@@ -724,6 +822,7 @@ For reference, the original Laravel Filament codebase comprises:
 | schemas | 80 | 10,965 |
 | forms | 96 | 20,556 |
 | tables | 79 | 12,085 |
+| query-builder | 25 | ~3,500 |
 | actions | 99 | 18,362 |
 | panels | 280 | 33,750 |
 | notifications | 26 | 3,061 |
@@ -746,6 +845,20 @@ These patterns from Filament are critical to preserve in the TypeScript rewrite:
 5. **hiddenOn/visibleOn** — Components can be contextually shown/hidden based on the current operation (create, edit, view) or other conditions.
 6. **Operation Context** — The system tracks the current operation (create, edit, view) and makes it available to all components for conditional behavior.
 7. **Utility Injection** — Callbacks can declare what context they need via parameter types, and the framework injects the appropriate values.
+
+---
+
+## Appendix C: Deferred Features
+
+The following features are intentionally deferred from the initial release. They are tracked here for future planning:
+
+| Feature | Reason | Dependency |
+|---|---|---|
+| ImportAction / ExportAction | Requires background job/queue system not in initial scope | Job queue solution |
+| Widget polling (auto-refresh) | Requires robust SSE or polling infrastructure | Reactive state architecture maturity |
+| Chunked file uploads | Standard multipart sufficient for initial release | File upload field maturity |
+| Client-side image cropping | Standard file upload sufficient initially | File upload field maturity |
+| Plugin system | Critical but explicitly deferred per SRS §3.11 | All core packages stable |
 
 ---
 

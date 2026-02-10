@@ -2,7 +2,7 @@
 
 ## Driven: Technology Stack & Design Decisions
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Date:** 2026-02-10
 **SDLC Phase:** Design
 **Prerequisite:** `SRS.md` (Software Requirements Specification)
@@ -56,6 +56,8 @@ Driven is an **AdonisJS package** — not a standalone framework. Users install 
 | **Charts** | Chart.js (via svelte-chartjs or vanilla) | Same as Filament, all required chart types supported |
 | **Icons** | Lucide Svelte (default), pluggable | Comprehensive icon set with Svelte components; Heroicons also supported |
 | **Data table logic** | Custom (no TanStack dependency) | We build our own table engine — Filament's table is custom, ours should be too |
+| **HTTP client** | Axios | Used for reactive field AJAX endpoints alongside Inertia; consistent API for all non-Inertia HTTP calls |
+| **Class merging** | tailwind-merge + clsx (via `cn()` utility) | Merge Tailwind CSS classes without conflicts — same pattern as shadcn-svelte |
 
 ### 2.3 Development Tooling
 
@@ -205,6 +207,244 @@ Driven is an **AdonisJS package** — not a standalone framework. Users install 
 
 ---
 
+### ADR-011: Reactive State Management via AJAX (Axios)
+
+**Decision:** Reactive/live field updates are handled via dedicated AJAX endpoints using Axios, separate from Inertia's page-based request cycle.
+
+**Context:** Laravel Filament's `live()`, `afterStateUpdated()`, `debounce()`, and dynamic field reactivity all rely on Livewire's stateful server-side component model — Livewire sends field state to the server, re-evaluates closures, and returns a diffed component tree. Inertia.js is page-based and has no equivalent mechanism.
+
+**Architecture:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Svelte Client                                                │
+│                                                               │
+│  Field A changes → field marked as live()                     │
+│    │                                                          │
+│    ├── Axios POST /driven/state-update                        │
+│    │     Body: { schemaId, fieldName, value, formState }      │
+│    │                                                          │
+│    ▼                                                          │
+│  Server evaluates all dependent closures with new state       │
+│    │                                                          │
+│    ▼                                                          │
+│  Response: { updatedFields: { fieldB: { options: [...] } } }  │
+│                                                               │
+│  Client merges response → fieldB re-renders with new options  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Key design points:**
+1. **Dedicated route** — `POST /driven/state-update` (registered by Driven's service provider, scoped per panel)
+2. **Axios (not Inertia)** — Inertia's `router.visit()` replaces the entire page component. Axios allows targeted JSON responses without full page re-render.
+3. **Modifiers** — Fields support `live()` (on change), `lazy()` (on blur), and `debounce(ms)` to control when AJAX fires.
+4. **`afterStateUpdated()` callbacks** — Evaluated server-side when the AJAX request arrives. The callback receives the new value and full form state.
+5. **Client-side reactivity for simple cases** — Simple visibility rules (e.g., "show field B when field A = 'X'") can be expressed as declarative JSON rules and evaluated in Svelte without a server round-trip. Complex logic (database lookups, computed values) requires the server.
+6. **Reusable** — The Axios-based state endpoint is available for any custom AJAX needs beyond built-in reactivity.
+
+**Consequence:** This introduces a "mini-Livewire" pattern for field reactivity. The server remains the source of truth for all business logic, while the client handles simple UI state changes (visibility toggling, etc.) for responsiveness.
+
+---
+
+### ADR-012: Table State via URL Query Parameters
+
+**Decision:** All table state (current page, sort column, sort direction, active filters, search query) is persisted in URL query parameters.
+
+**Rationale:**
+- With Inertia, the URL is the natural place for page state (unlike Livewire where state lives in the component).
+- Enables shareable/bookmarkable table views — users can share a filtered, sorted table URL.
+- Browser back/forward navigation works correctly.
+- Aligns with Inertia's `router.visit()` pattern which naturally uses query parameters.
+
+**URL format:**
+```
+/admin/posts?page=2&sort=created_at&direction=desc&filter[status]=published&search=hello
+```
+
+**Implementation:**
+- Inertia controller reads query params → applies to Lucid query → returns paginated results
+- Svelte table component updates URL via `router.get()` with `preserveState: true` when user interacts
+- Default values omitted from URL for cleanliness
+
+---
+
+### ADR-013: Asset Distribution, Design System & Theming
+
+**Decision:** Driven provides a Tailwind CSS 4 plugin (`@driven/tailwind`) and ships pre-compiled Svelte components resolved from `node_modules`.
+
+**Asset Distribution:**
+
+1. **Svelte components** ship in each package's `dist/` directory as compiled Svelte components. Inertia's component resolver is configured to also look in `node_modules/@driven/*/dist/pages/` for Driven page components.
+
+2. **Tailwind CSS integration** — Users add two lines to their CSS entry file:
+   ```css
+   @import "tailwindcss";
+   @source "../node_modules/@driven/*/dist/**/*.svelte";
+   @plugin "@driven/tailwind";
+   ```
+   - `@source` tells Tailwind CSS 4 to scan Driven's components for class names
+   - `@plugin` loads Driven's Tailwind plugin which registers theme values and utilities
+
+3. **Vite integration** — Each Driven package registers its assets via AdonisJS's Vite integration. No manual Vite config needed.
+
+**Unified Design System:**
+
+All Driven components follow a consistent design system built on CSS custom properties:
+
+1. **CSS Custom Properties as the theming foundation:**
+   ```css
+   :root {
+     /* 6 semantic color scales (50-950 shades, OKLCH) */
+     --dr-primary-50: oklch(...); --dr-primary-500: oklch(...); --dr-primary-950: oklch(...);
+     --dr-danger-50: oklch(...);  /* ... */
+     --dr-gray-50: oklch(...);    /* ... */
+     --dr-info-50: oklch(...);    /* ... */
+     --dr-success-50: oklch(...); /* ... */
+     --dr-warning-50: oklch(...); /* ... */
+     /* Typography */
+     --dr-font-family: 'Inter', system-ui, sans-serif;
+     --dr-font-size-base: 0.875rem;
+     /* Spacing, radius, shadows */
+     --dr-radius-sm: 0.25rem; --dr-radius-md: 0.375rem; --dr-radius-lg: 0.5rem;
+   }
+   .dark { /* Inverted shade mapping for dark mode */ }
+   ```
+
+2. **Semantic `.dr-*` CSS classes** on all components for targeted customization:
+   ```html
+   <div class="dr-section dr-section--collapsible">
+     <div class="dr-section__header">...</div>
+     <div class="dr-section__content">...</div>
+   </div>
+   ```
+
+3. **Component variants via props** — Components support variant/size props:
+   ```svelte
+   <Button variant="default|outlined|ghost|link" size="xs|sm|md|lg|xl" />
+   ```
+
+4. **`cn()` utility** for class merging (tailwind-merge + clsx), same pattern as shadcn-svelte.
+
+5. **Dark mode** — Driven uses Tailwind's `dark:` variant mapped to CSS custom properties. Three modes: light, dark, system preference.
+
+6. **Panel-level theming** — Each panel configures its 6 semantic colors. The `@driven/tailwind` plugin generates the full shade scales from base colors using OKLCH color space.
+
+**Consequence:** Users customize appearance by overriding CSS custom properties or Tailwind theme values. Component internals never need modification.
+
+---
+
+### ADR-014: Database Migrations (Package-Registered)
+
+**Decision:** Driven packages register their migration directories via AdonisJS service providers. Users run migrations with `node ace migration:run` — no publishing or modification needed.
+
+**Rationale:**
+- AdonisJS service providers can register additional migration paths that are picked up by `node ace migration:run`.
+- Users don't need to modify framework migrations — they're internal implementation details.
+- This is simpler than Laravel's `vendor:publish` pattern and less error-prone (no stale published migrations).
+
+**Packages requiring migrations:**
+- `@driven/notifications` — `driven_notifications` table (for database notifications)
+- `@driven/panels` — optional tenant-related tables (when multi-tenancy is enabled)
+
+**Setup:** When users run `node ace configure @driven/panels`, the package's configure hook registers its migration paths in `adonisrc.ts`. Subsequent `node ace migration:run` picks up Driven's migrations automatically.
+
+---
+
+### ADR-015: Schema Serialization Strategy
+
+**Decision:** The server is the authoritative source of truth. All `Resolvable<T>` closures are evaluated server-side before serialization. The client receives only resolved static values in JSON.
+
+**Rationale:**
+- Closures/functions cannot be serialized to JSON.
+- Keeping evaluation server-side prevents leaking business logic to the client.
+- Server-side evaluation aligns with the SDUI philosophy — the server decides what the UI looks like.
+
+**Architecture:**
+
+```
+Server                                      Client
+──────                                      ──────
+TextInput.make('name')                      Receives JSON:
+  .label('Full Name')        ──serialize──▶ { type: 'text-input',
+  .visible((ctx) =>                           name: 'name',
+    ctx.operation === 'edit')                  label: 'Full Name',
+  .placeholder('...')                          visible: true,
+                                               placeholder: '...' }
+```
+
+**Special cases:**
+1. **Dynamic visibility rules** — Simple conditional rules (e.g., "visible when field X = value Y") are serialized as declarative rule objects, NOT as closures. The client evaluates these locally for instant responsiveness:
+   ```json
+   { "visible": { "rule": "fieldEquals", "field": "status", "value": "published" } }
+   ```
+
+2. **Complex server-dependent logic** — Any closure that requires database access, authenticated user checks, or complex computation is evaluated server-side. When the dependency changes (e.g., a `live()` field), ADR-011's AJAX mechanism re-evaluates and sends updated values.
+
+3. **Model data exposure** — Only explicitly serialized model attributes are sent to the client. Lucid model `$hidden` and `$visible` arrays are respected. Resources can define a `transformRecord()` method to control what data reaches the client.
+
+**Consequence:** The client is a "dumb" renderer for most cases, with local evaluation only for simple declarative rules. All business logic stays server-side.
+
+---
+
+### ADR-016: No Macroable Pattern
+
+**Decision:** Driven does not implement a runtime `Macroable` pattern (PHP's `__call` + macro registry). Use TypeScript-native extension mechanisms instead.
+
+**Rationale:**
+- TypeScript's type system makes runtime monkey-patching problematic — added methods would not be type-safe.
+- TypeScript provides superior alternatives:
+  - **Class inheritance** — `class MyTextInput extends TextInput {}`
+  - **Mixin composition** — `class MyComponent extends CustomMixin(TextInput) {}`
+  - **Module augmentation** — extend interfaces at compile time for type-safe additions
+- The mixin system (ADD §5.2) already handles the composition use cases that PHP macros solve.
+
+---
+
+### ADR-017: Avatar & Font Provider System
+
+**Decision:** Pluggable provider interfaces for user avatars and font loading.
+
+**Avatar Providers:**
+```typescript
+interface AvatarProvider {
+  getUrl(user: Authenticatable): string | Promise<string>
+}
+```
+- **Default:** `InitialsAvatarProvider` — generates initials-based SVG avatars (no external service)
+- **Built-in alternatives:** `GravatarProvider`, `UiAvatarsProvider`
+- Configurable per panel: `panel.avatarProvider(new GravatarProvider())`
+- Users can implement custom providers
+
+**Font Providers:**
+```typescript
+interface FontProvider {
+  getHtml(family: string): string  // Returns <link> or <style> tag
+}
+```
+- **Default:** System font stack (no external loading)
+- **Built-in:** `GoogleFontProvider`, `BunnyFontProvider` (privacy-friendly), `LocalFontProvider`
+- Configurable per panel: `panel.font('Inter', new GoogleFontProvider())`
+
+---
+
+### ADR-018: Events System
+
+**Decision:** Driven dispatches domain events via `@adonisjs/events` (AdonisJS's built-in event emitter). No new event infrastructure needed.
+
+**Event naming convention:** `driven:domain.action` (e.g., `driven:record.created`, `driven:action.called`)
+
+**Users listen via standard AdonisJS patterns:**
+```typescript
+// start/events.ts
+import emitter from '@adonisjs/core/services/emitter'
+
+emitter.on('driven:record.created', (event) => {
+  // event.resource, event.record, event.user
+})
+```
+
+---
+
 ## 4. Project Scaffolding
 
 ### 4.1 New Project Setup
@@ -236,6 +476,7 @@ driven/
 │   ├── forms/            # Form field components + VineJS validation integration
 │   ├── infolists/        # Read-only entry components
 │   ├── actions/          # Action system (buttons, modals, prebuilt CRUD actions)
+│   ├── query-builder/    # Advanced multi-condition query builder (constraints, operators)
 │   ├── tables/           # Table builder (columns, filters, pagination, sorting)
 │   ├── notifications/    # Flash, database, broadcast notifications
 │   ├── widgets/          # Stats, charts, custom widgets
@@ -390,19 +631,34 @@ TextInput.make('email')
 
 ## 6. Decisions NOT Yet Made
 
-The following design concerns will be resolved during implementation (Phase 3):
+The following design concerns will be resolved during implementation:
 
 | Concern | Notes |
 |---|---|
 | **Exact Svelte component structure** | How schema JSON maps to Svelte component tree — resolved during `@driven/schemas` implementation |
 | **Plugin registration API** | How third-party plugins hook into the panel — deferred per SRS (not day-one) |
-| **Multi-tenancy scoping** | How Lucid queries are automatically scoped to tenant — resolved during `@driven/panels` implementation |
-| **Import/Export action formats** | CSV parsing library choice — resolved during `@driven/actions` implementation |
+| **Multi-tenancy scoping strategy** | Single-database (column-based) vs multi-database. Default: single-database with automatic query scoping via Lucid global scopes — resolved during `@driven/panels` implementation |
+| **Multi-tenancy billing integration** | Provider interface for Stripe/Paddle/etc. — resolved during `@driven/panels` advanced features |
 | **Markdown editor library** | Specific library for MarkdownEditor field — resolved during `@driven/forms` implementation |
+| **Component caching** | `node ace driven:cache` / `driven:clear-cache` for production optimization (caches discovered resources/pages/widgets to avoid filesystem scanning) — resolved during `@driven/panels` implementation |
 
 ---
 
-## 7. Risk Assessment
+## 7. Out of Scope (Deferred)
+
+The following features are intentionally deferred from the initial release:
+
+| Feature | Reason | Future Dependency |
+|---|---|---|
+| **ImportAction / ExportAction** | Requires a background job/queue system. AdonisJS lacks a built-in queue; a solution (e.g., BullMQ, `@rlanz/bull-queue`) must be evaluated separately. | Job queue library decision |
+| **Widget / Component polling** | Requires SSE or polling infrastructure beyond initial scope | Reactive state architecture maturity |
+| **Chunked file uploads** | Standard multipart POST is sufficient for initial release | File upload field maturity |
+| **Client-side image cropping** | Standard file upload + preview is sufficient initially | File upload field maturity |
+| **Plugin system** | Critical but explicitly deferred (SRS §3.11) | All core packages stable |
+
+---
+
+## 8. Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
@@ -410,10 +666,12 @@ The following design concerns will be resolved during implementation (Phase 3):
 | AdonisJS market share limits adoption | Medium | Medium | AdonisJS is growing; Driven could itself drive AdonisJS adoption (as Laravel Filament drove Laravel adoption) |
 | Inertia Svelte adapter less tested than Vue | Medium | Low | Inertia's Svelte adapter is officially maintained; issues can be contributed upstream |
 | Svelte 5 runes API changes | Low | High | Svelte 5 is stable; pin to specific versions |
+| Reactive AJAX endpoint complexity | Medium | Medium | Scope initial implementation to field-level updates; avoid replicating Livewire's full reactivity model |
+| Tailwind CSS 4 scanning performance | Low | Low | Limit `@source` paths; pre-compile Driven component styles where possible |
 
 ---
 
-## 8. References
+## 9. References
 
 - AdonisJS Documentation: https://docs.adonisjs.com
 - AdonisJS Inertia Starter Kit: https://github.com/adonisjs/inertia-starter-kit
