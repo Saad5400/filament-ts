@@ -192,3 +192,4 @@ Starter kit: https://github.com/adonisjs/inertia-starter-kit
 - `CLAUDE.md` — Project context and status (this file)
 - `SRS.md` — Software Requirements Specification
 - `ADD.md` — Architecture Design Document (technology stack & design decisions)
+- `MILESTONES.md` — Project milestones and progress tracker
