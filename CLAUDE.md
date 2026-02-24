@@ -127,7 +127,7 @@ Can use Driven components outside panels: Avatar, Badge, Breadcrumbs, Button, Ch
 The following directory contains the filament project cloned from GitHub which contains all the source code and documentation for Filament:
 
 ```
-/home/saad/filament
+../filament
 ```
 
 ## Project Status

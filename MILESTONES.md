@@ -110,7 +110,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - All tests passing
 - Package exports a clean public API from `src/index.ts`
 
-**Reference:** Study `/home/saad/filament/packages/support/src` for the original patterns.
+**Reference:** Study `../filament/packages/support/src` for the original patterns.
 
 ---
 
@@ -136,7 +136,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - StateCasts correctly transform state in both directions
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/schemas/src`
+**Reference:** Study `../filament/packages/schemas/src`
 
 ---
 
@@ -196,7 +196,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - Relationship bindings correctly attach to Lucid relations
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/forms/src`
+**Reference:** Study `../filament/packages/forms/src`
 
 ---
 
@@ -250,7 +250,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - Clipboard copying and URL opening work on entries
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/infolists/src`
+**Reference:** Study `../filament/packages/infolists/src`
 
 ---
 
@@ -284,7 +284,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - Rate limiting enforced
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/actions/src`
+**Reference:** Study `../filament/packages/actions/src`
 
 ---
 
@@ -315,7 +315,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - Integrates with `@driven/tables` as a filter type (Milestone 9)
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/query-builder/src`
+**Reference:** Study `../filament/packages/query-builder/src`
 
 ---
 
@@ -351,7 +351,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - Paginated results serialized efficiently for Inertia
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/tables/src`
+**Reference:** Study `../filament/packages/tables/src`
 
 ---
 
@@ -411,7 +411,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - Migration runs via `node ace migration:run` without user publishing
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/notifications/src`
+**Reference:** Study `../filament/packages/notifications/src`
 
 ---
 
@@ -438,7 +438,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 
 > **Deferred:** Widget polling (auto-refresh at intervals) is out of scope for initial release.
 
-**Reference:** Study `/home/saad/filament/packages/widgets/src`
+**Reference:** Study `../filament/packages/widgets/src`
 
 ---
 
@@ -470,7 +470,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 - Multiple panels can coexist
 - All tests passing
 
-**Reference:** Study `/home/saad/filament/packages/panels/src`
+**Reference:** Study `../filament/packages/panels/src`
 
 ---
 

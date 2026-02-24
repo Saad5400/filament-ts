@@ -42,8 +42,8 @@ Driven is **not** limited to admin panels — it must be suitable for any applic
 
 ### 1.4 Reference Material
 
-- Laravel Filament v4 source code: `/home/saad/filament`
-- Laravel Filament v4 documentation: `/home/saad/filament/docs`
+- Laravel Filament v4 source code: `../filament`
+- Laravel Filament v4 documentation: `../filament/docs`
 - Filament website: https://filamentphp.com
 
 ---
