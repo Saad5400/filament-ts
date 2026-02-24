@@ -17,5 +17,9 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0"
   }
 }

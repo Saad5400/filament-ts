@@ -10,7 +10,7 @@
     "build": "tsc -b",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
-    "test": "node ./bin/test.js",
+    "test": "npm run build && node ./bin/test.js",
     "format": "prettier --check .",
     "format:write": "prettier --write ."
   },
