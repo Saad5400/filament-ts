@@ -477,11 +477,26 @@ test.group('Milestone 1: Colors + Icons + Utils + Enums + Exceptions', () => {
     assert.equal(colors.custom[500].includes('oklch('), true)
   })
 
+  test('convertToOklch normalizes short hex colors without NaN values', () => {
+    const shortHex = convertToOklch('#fff')
+    const fullHex = convertToOklch('#ffffff')
+    const palette = generatePalette('#fff')
+
+    assert.equal(shortHex, fullHex)
+    assert.equal(shortHex.includes('NaN'), false)
+    assert.equal(palette[500].includes('NaN'), false)
+  })
+
   test('generatePalette keeps achromatic colors at zero chroma', () => {
     const palette = generatePalette('#808080')
 
     assert.equal(palette[500].includes(' 0 '), true)
     assert.equal(palette[900].includes(' 0 '), true)
+  })
+
+  test('color utilities throw for invalid color input', () => {
+    assert.throws(() => convertToOklch('#ggg'), /Invalid color provided: #ggg/)
+    assert.throws(() => generatePalette('not-a-color'), /Invalid color provided: not-a-color/)
   })
 
   test('ColorManager supports closure-based registration with context', () => {

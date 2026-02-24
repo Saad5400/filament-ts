@@ -19,6 +19,49 @@ function isColorScale(value: ColorInput): value is ColorScale {
   return typeof value === 'object' && value !== null
 }
 
+function parseHexChannels(color: string): [number, number, number] | null {
+  const hex = color.slice(1)
+
+  if (/^[\da-f]{3}$/i.test(hex)) {
+    const expandedHex = hex
+      .split('')
+      .map((channel) => channel.repeat(2))
+      .join('')
+
+    return [
+      Number.parseInt(expandedHex.slice(0, 2), 16),
+      Number.parseInt(expandedHex.slice(2, 4), 16),
+      Number.parseInt(expandedHex.slice(4, 6), 16),
+    ]
+  }
+
+  if (/^[\da-f]{6}$/i.test(hex)) {
+    return [
+      Number.parseInt(hex.slice(0, 2), 16),
+      Number.parseInt(hex.slice(2, 4), 16),
+      Number.parseInt(hex.slice(4, 6), 16),
+    ]
+  }
+
+  return null
+}
+
+function parseChannelList(channelList: string): [number, number, number] | null {
+  const channels = channelList.split(',')
+
+  if (channels.length !== 3 || channels.some((channel) => channel.length === 0)) {
+    return null
+  }
+
+  const parsedChannels = channels.map((channel) => Number(channel))
+
+  if (parsedChannels.some((channel) => !Number.isFinite(channel))) {
+    return null
+  }
+
+  return parsedChannels as [number, number, number]
+}
+
 export function convertToOklch(color: string): string {
   if (color.startsWith('oklch(')) {
     return color
@@ -26,25 +69,24 @@ export function convertToOklch(color: string): string {
 
   const normalizedColor = color.replace(/\s+/g, '')
 
-  let red: number
-  let green: number
-  let blue: number
+  let channels: [number, number, number] | null = null
 
   if (normalizedColor.startsWith('#')) {
-    ;[red, green, blue] = normalizedColor
-      .slice(1)
-      .match(/.{1,2}/g)
-      ?.map((channel) => Number.parseInt(channel, 16)) as [number, number, number]
-  } else if (normalizedColor.startsWith('rgb(')) {
-    ;[red, green, blue] = normalizedColor
-      .slice(4, -1)
-      .split(',')
-      .map((channel) => Number.parseInt(channel, 10)) as [number, number, number]
+    channels = parseHexChannels(normalizedColor)
+  } else if (normalizedColor.startsWith('rgb(') && normalizedColor.endsWith(')')) {
+    channels = parseChannelList(normalizedColor.slice(4, -1))
   } else {
-    ;[red, green, blue] = normalizedColor
-      .split(',')
-      .map((channel) => Number.parseInt(channel, 10)) as [number, number, number]
+    channels = parseChannelList(normalizedColor)
   }
+
+  if (
+    !channels ||
+    channels.some((channel) => !Number.isFinite(channel) || channel < 0 || channel > 255)
+  ) {
+    throw new Error(`Invalid color provided: ${color}`)
+  }
+
+  let [red, green, blue] = channels
 
   red /= 255
   green /= 255
@@ -82,18 +124,20 @@ export function convertToOklch(color: string): string {
 export function generatePalette(color: string): ColorScale {
   const oklchColor = convertToOklch(color)
   const [, , chroma, hue] = oklchColor.match(/oklch\(([^\s]+)\s+([^\s]+)\s+([^\s\)]+)\)/) ?? []
+  const parsedChroma = chroma ? Number(chroma) : Number.NaN
+  const parsedHue = hue ? Number(hue) : Number.NaN
 
-  if (!chroma || !hue) {
+  if (!Number.isFinite(parsedChroma) || !Number.isFinite(parsedHue)) {
     throw new Error(`Invalid color provided: ${color}`)
   }
 
-  const isAchromatic = Number.parseFloat(chroma) < 0.03
+  const isAchromatic = parsedChroma < 0.03
 
   return COLOR_SHADES.reduce<ColorScale>((palette, shade) => {
     const [lightness, targetChroma] = PALETTE_CONSTANTS[shade]
     const shadeChroma = isAchromatic ? 0 : targetChroma
 
-    palette[shade] = `oklch(${lightness} ${shadeChroma} ${hue})`
+    palette[shade] = `oklch(${lightness} ${shadeChroma} ${parsedHue})`
 
     return palette
   }, {} as ColorScale)
