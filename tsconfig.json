@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/support" },
+    { "path": "./packages/schemas" },
+    { "path": "./packages/forms" },
+    { "path": "./packages/infolists" },
+    { "path": "./packages/actions" },
+    { "path": "./packages/query-builder" },
+    { "path": "./packages/tables" },
+    { "path": "./packages/notifications" },
+    { "path": "./packages/widgets" },
+    { "path": "./packages/panels" }
+  ]
+}

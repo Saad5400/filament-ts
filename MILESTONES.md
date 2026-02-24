@@ -21,7 +21,7 @@ Each milestone follows the pattern: **design → implement → test**. A milesto
 
 | # | Milestone | Status | Completed By | Date |
 |---|-----------|--------|-------------|------|
-| 0 | Project Infrastructure | ⬜ Not Started | | |
+| 0 | Project Infrastructure | ✅ Complete | Codex | 2026-02-24 |
 | 1 | @driven/support | ⬜ Not Started | | |
 | 2 | @driven/schemas (server) | ⬜ Not Started | | |
 | 3 | Svelte Component Foundation & Design System | ⬜ Not Started | | |
