@@ -437,6 +437,23 @@ test.group('Milestone 1: Concerns', () => {
 
     assert.equal(subject.getAction('edit')?.label, 'New Edit')
   })
+
+  test('HasActions resolves context-sensitive closures per context', () => {
+    class Subject extends HasActions(Component) {}
+
+    let calls = 0
+    const subject = Subject.make().registerActions([
+      (context) => {
+        calls += 1
+
+        return { name: 'edit', label: context.operation }
+      },
+    ])
+
+    assert.equal(subject.getAction('edit', { operation: Operation.Create })?.label, Operation.Create)
+    assert.equal(subject.getAction('edit', { operation: Operation.View })?.label, Operation.View)
+    assert.equal(calls, 2)
+  })
 })
 
 test.group('Milestone 1: Colors + Icons + Utils + Enums + Exceptions', () => {

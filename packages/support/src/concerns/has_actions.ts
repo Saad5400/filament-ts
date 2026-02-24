@@ -22,6 +22,12 @@ function normalizeActions(resolved: unknown): ActionLike[] {
   return []
 }
 
+function shouldCacheResolvedActions(
+  actions: Array<Resolvable<ActionLike | ActionLike[] | null>>,
+): boolean {
+  return !actions.some((action) => typeof action === 'function')
+}
+
 export function HasActions<TBase extends Constructor>(Base: TBase) {
   return class HasActionsMixin extends Base {
     public cachedActions: Record<string, ActionLike> | null = null
@@ -56,7 +62,9 @@ export function HasActions<TBase extends Constructor>(Base: TBase) {
     }
 
     getActions(context: ResolveContextLike = {}): Record<string, ActionLike> {
-      if (this.cachedActions) {
+      const shouldCacheActions = shouldCacheResolvedActions(this.registeredActions)
+
+      if (shouldCacheActions && this.cachedActions) {
         return this.cachedActions
       }
 
@@ -70,7 +78,9 @@ export function HasActions<TBase extends Constructor>(Base: TBase) {
         }
       }
 
-      this.cachedActions = actions
+      if (shouldCacheActions) {
+        this.cachedActions = actions
+      }
 
       return actions
     }
